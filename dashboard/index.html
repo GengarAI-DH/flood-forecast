@@ -47,6 +47,41 @@
 .ff .infobtn[aria-expanded="true"]{background:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg)}
 .ff .info{margin:var(--cds-gap-sm) 0;padding:var(--cds-pad-sm) var(--cds-pad-md);border-radius:var(--cds-radius);background:var(--color-bg);border:1px solid var(--color-border-line);font-size:var(--cds-font-size-caption)}
 .ff .info p{margin:0 0 6px}.ff .info p:last-child{margin:0}
+.ff .lookup{display:flex;align-items:center;gap:var(--cds-gap-sm);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ff .lookup select{font:inherit;font-size:var(--cds-font-size-body);color:var(--color-fg);background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:6px 10px;max-width:100%;min-width:0;flex:1 1 auto}
+.ff .detail{border-width:2px}
+.ff .hint{margin:calc(-1 * var(--cds-gap-sm)) 0 0}
+.ff .dname{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title)}
+.ff .closebtn{font:inherit;font-size:var(--cds-font-size-caption);padding:6px 12px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
+.ff .dstats{margin:var(--cds-gap-xs) 0 var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ff .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,18rem),1fr));gap:var(--cds-gap-lg)}
+.ff .detail h3{font-size:var(--cds-font-size-caption);font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);text-transform:none;margin:var(--cds-gap-md) 0 var(--cds-gap-xs)}
+.ff .dblock h3:first-child{margin-top:0}
+.ff .detail p{margin:0;font-size:var(--cds-font-size-body)}
+.ff .chips{display:flex;flex-wrap:wrap;gap:6px}
+.ff .chip{font-size:var(--cds-font-size-caption);padding:3px 10px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg)}
+.ff .dlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:var(--cds-font-size-caption)}
+.ff .dlist li{padding-bottom:8px;border-bottom:1px solid var(--color-border-line)}
+.ff .dlist li:last-child{border-bottom:0}
+.ff .dlist .meta{color:var(--color-fg-muted)}
+.ff [data-trend]{cursor:pointer}
+.ff tr[data-trend]:hover td{background:var(--color-bg)}
+.ff .tlink{text-decoration:underline;text-decoration-color:var(--color-border-line);text-underline-offset:3px}
+.ff .zoombar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:var(--cds-gap-sm)}
+.ff .zbtn{font:inherit;min-width:32px;height:32px;padding:0 10px;border-radius:var(--cds-radius);border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer;font-size:var(--cds-font-size-body)}
+.ff .zbtn.wide{font-size:var(--cds-font-size-caption)}
+.ff .glance svg{cursor:grab}
+.ff .fuel{margin-top:var(--cds-gap-sm)}
+.ff .wgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--cds-gap-md)}
+.ff .wcard{border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-md);background:var(--color-bg);display:flex;flex-direction:column;gap:8px;min-width:0}
+.ff .wtop{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ff .wname{font-weight:var(--cds-font-weight-medium);font-size:var(--cds-font-size-body)}
+.ff .pill{flex:0 0 auto;font-size:var(--cds-font-size-caption);padding:2px 10px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}
+.ff .wrow{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;font-variant-numeric:tabular-nums}
+.ff .wcell .label{display:block}
+.ff .wcell b{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-heading)}
+.ff .wmeta{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ff .wstate{margin:calc(-1 * var(--cds-gap-sm)) 0 var(--cds-gap-md);font-size:var(--cds-font-size-caption)}
 [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
 [data-dash-source-state=empty]{color:transparent}
 </style>
@@ -58,24 +93,123 @@
 
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" data-tab="watched" aria-selected="false">Watched</button>
     <button class="tab" role="tab" data-tab="trends" aria-selected="false">Trends</button>
     <button class="tab" role="tab" data-tab="risk" aria-selected="false">World risk</button>
     <button class="tab" role="tab" data-tab="model" aria-selected="false">How it works</button>
   </nav>
 
+  <div class="lookup" id="lookup">
+    <label for="tdpick">Look up a trend</label>
+    <select id="tdpick" data-draw="tdpick" data-source="map"></select>
+  </div>
+  <p class="label hint">Not on the list? Ask Claude in chat to research anything and add it, or to watch it.</p>
+
+  <section class="card detail" id="trenddetail" hidden>
+    <div class="cardhead">
+      <h2 class="dname" data-draw="tdname" data-source="map">—</h2>
+      <button class="closebtn" type="button" aria-label="Close trend details">Close</button>
+    </div>
+    <p class="dstats" data-draw="tdstats" data-source="map">—</p>
+    <p class="wstate" data-draw="tdwatchstate" data-source="watchlist">—</p>
+    <div class="dgrid">
+      <div class="dblock">
+        <h3>Why it's trending</h3>
+        <p data-draw="tdwhy" data-source="briefs radar">—</p>
+        <h3>Background</h3>
+        <p data-draw="tdbg" data-source="briefs">—</p>
+        <h3>What to watch</h3>
+        <p data-draw="tdwatch" data-source="briefs">—</p>
+        <h3>Where it's headed</h3>
+        <p data-draw="tdfore" data-source="projection">—</p>
+      </div>
+      <div class="dblock">
+        <h3>What's driving it</h3>
+        <div class="chips" data-draw="tddrivers" data-source="radar"></div>
+        <h3>Key people</h3>
+        <ul class="dlist" data-draw="tdpeople" data-source="radar"></ul>
+      </div>
+    </div>
+    <h3>Every signal, with sources</h3>
+    <ul class="dlist" data-draw="tdsignals" data-source="radar"></ul>
+  </section>
+
+  <section class="card detail" id="persondetail" hidden>
+    <div class="cardhead">
+      <h2 class="dname" data-draw="pdname" data-source="people">—</h2>
+      <button class="closebtn" type="button" aria-label="Close person details">Close</button>
+    </div>
+    <p class="dstats" data-draw="pdrole" data-source="people">—</p>
+    <div class="dgrid">
+      <div class="dblock">
+        <h3>Background</h3>
+        <p data-draw="pdbg" data-source="people">—</p>
+        <h3>Why they matter now</h3>
+        <p data-draw="pdwhy" data-source="people">—</p>
+      </div>
+      <div class="dblock">
+        <h3>Trends they're moving</h3>
+        <div class="chips" data-draw="pdtrends" data-source="radar"></div>
+      </div>
+    </div>
+    <h3>What they've said and done</h3>
+    <ul class="dlist" data-draw="pdsignals" data-source="radar"></ul>
+  </section>
+
+  <section class="card detail" id="riskdetail" hidden>
+    <div class="cardhead">
+      <h2 class="dname" data-draw="rdname" data-source="risk">—</h2>
+      <button class="closebtn" type="button" aria-label="Close risk details">Close</button>
+    </div>
+    <p class="dstats" data-draw="rdlevel" data-source="risk">—</p>
+    <div class="dgrid">
+      <div class="dblock">
+        <h3>Why it's at this level today</h3>
+        <p data-draw="rdwhy" data-source="risk">—</p>
+        <h3>Background</h3>
+        <p data-draw="rdbg" data-source="riskinfo">—</p>
+        <h3>What to watch</h3>
+        <p data-draw="rdwatch" data-source="riskinfo">—</p>
+      </div>
+      <div class="dblock">
+        <h3>What forecasters estimate</h3>
+        <ul class="dlist" data-draw="rdodds" data-source="odds riskinfo"></ul>
+      </div>
+    </div>
+  </section>
+
+
   <section class="page" id="overview" role="tabpanel">
     <div class="pagehead"><h2 class="ptitle">Overview</h2><p class="note">The big picture: every trend on one map, and where the hottest ones are headed.</p></div>
     <section class="card" id="glance">
       <div class="cardhead"><h2>Everything at a glance</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble for details.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded.</p></div>
-      <p class="note">Every trend on one map. Left to right is how far along it is, from just emerging to crowded. Higher means hotter right now. Bigger bubbles have more evidence. The sweet spot is the green corner: early and heating up.</p>
+      <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble to open why it's trending, who's behind it, and every source. Zoom in and each bubble sprouts small dots, one per signal type fueling it, sized by how many signals and colored by type.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded. When zoomed in, a trend fueled by Funding and Key people is early; one fueled by Social and Courses is late.</p></div>
+      <p class="note">Every trend on one map. Left to right is how far along it is, from just emerging to crowded. Higher means hotter right now. Bigger bubbles have more evidence. Tap any bubble to see why it's trending. The sweet spot is the green corner: early and heating up.</p>
       <div class="legend">
         <span><i class="sw zone" data-z="Get in early"></i>Get in early</span>
         <span><i class="sw zone" data-z="Hot now"></i>Hot now</span>
         <span><i class="sw zone" data-z="Crowded"></i>Crowded</span>
         <span><i class="sw zone" data-z="Fading"></i>Fading</span>
       </div>
-      <div class="chart glance" data-draw="glancechart" data-source="map"></div>
+      <div class="zoombar">
+      <button class="zbtn" type="button" data-zoom="in" aria-label="Zoom in">+</button>
+      <button class="zbtn" type="button" data-zoom="out" aria-label="Zoom out">−</button>
+      <button class="zbtn wide" type="button" data-zoom="reset">Reset</button>
+      <span class="label">Pinch or Ctrl+scroll to zoom, drag to move. Zoom in to see what's fueling each trend.</span>
+    </div>
+    <div class="chart glance" data-draw="glancechart" data-source="map radar"></div>
+    <div class="legend fuel">
+      <span class="label">Fueled by:</span>
+      <span><i class="sw cat" data-cat="Key people"></i>Key people</span>
+      <span><i class="sw cat" data-cat="World events"></i>World events</span>
+      <span><i class="sw cat" data-cat="Politics"></i>Politics</span>
+      <span><i class="sw cat" data-cat="Stocks"></i>Stocks</span>
+      <span><i class="sw cat" data-cat="News"></i>News</span>
+      <span><i class="sw cat" data-cat="Social"></i>Social</span>
+      <span><i class="sw cat" data-cat="Funding"></i>Funding</span>
+      <span><i class="sw cat" data-cat="Jobs"></i>Jobs</span>
+      <span><i class="sw cat" data-cat="Courses"></i>Courses</span>
+    </div>
     </section>
 
     <section class="card" id="forecastcard">
@@ -84,6 +218,24 @@
       <p class="note">Solid lines are what happened. Dashed lines are the forecast, with the shaded band showing how sure it is. Right now it can see <b data-draw="reach" data-source="projection" data-field="horizon_weeks" data-row="0">—</b> weeks ahead from <b data-draw="histw" data-source="projection" data-field="history_weeks" data-row="0">—</b> weeks of history. That reach grows as the collector logs more data and as its calls prove right, up to five years out.</p>
       <div class="legend" data-draw="fclegend" data-source="projection"></div>
       <div class="chart" data-draw="fcchart" data-source="projection"></div>
+    </section>
+  </section>
+
+  <section class="page" id="watched" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">Watched</h2><p class="note">Trends you're keeping an eye on: what they were, what they are now, and alerts when one speeds up, cools off or turns into a problem.</p></div>
+    <section class="card" id="watchlistcard">
+      <div class="cardhead"><h2>Your watchlist</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each card compares a trend 30 days ago, when you started watching, and now. The line is its heat over the last year. Tap a name for the full why.</p><p><b>What it's for:</b> Following the few trends that matter to you without digging through everything else.</p><p><b>Watch for:</b> Trending harder means heat is up or it moved toward hot. Cooling off means heat is dropping. Becoming a problem means it just slid into crowded or fading.</p></div>
+      <div class="wgrid" data-draw="wcards" data-source="watched trend"></div>
+    </section>
+    <section class="card" id="alertscard">
+      <div class="cardhead"><h2>Recent alerts</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each line is a change the collector caught on one of your watched trends, newest first.</p><p><b>What it's for:</b> The same alerts go to your phone when push notifications are on for the collector.</p><p><b>Watch for:</b> Two alerts in a row in the same direction is a real move, not noise.</p></div>
+      <ul class="dlist" data-draw="alist" data-source="alerts"></ul>
+    </section>
+    <section class="card" id="watchhow">
+      <h2>Add or remove a trend</h2>
+      <p class="note">Tell Claude in chat, for example “watch Matcha” or “stop watching Gold”. The dashboard can't save taps on its own, so Claude keeps the list and records where each trend stood the day you started watching.</p>
     </section>
   </section>
 
@@ -129,8 +281,8 @@
       <p class="note">Public statements and official moves by leaders, central bankers and top CEOs, tied to the trend they affect.</p>
       <p class="label" data-draw="kpempty" data-source="people">—</p>
       <div class="tablebox">
-        <table data-source="people" data-row-key="signal">
-          <thead><tr><th data-field="date">Date</th><th data-field="field">Trend</th><th data-field="signal">What they said or did</th><th data-field="source">Source</th></tr></thead>
+        <table data-source="people" data-row-key="signal" class="kptable">
+          <thead><tr><th>Who</th><th data-field="date">Date</th><th data-field="field">Trend</th><th data-field="signal">What they said or did</th><th data-field="source">Source</th></tr></thead>
           <tbody data-draw="kptable"></tbody>
         </table>
       </div>
@@ -408,6 +560,34 @@ dash.calc('trend', {
 });
 </script>
 <script>
+dash.calc('watched', {
+  inputs: ['watchlist', 'map', 'trend', 'radar'],
+  title: 'Watched trends, then vs now',
+  description: 'For each watched trend: its heat, stage and zone when you started watching, 30 days ago (from the weekly heat series) and now, the change, new signals since you started watching, and a status: trending harder (heat up 0.3+ or moving toward hot), cooling off (heat down 0.3+), becoming a problem (newly crowded or fading), else steady.',
+  fn: (watchlist, map, trend, radar) => watchlist.map((w) => {
+    const now = map.find((r) => r.field === w.field);
+    const series = trend.filter((r) => r.field === w.field);
+    const ago = series.length > 4 ? series[series.length - 5].heat : null;
+    const r2 = (v) => (v == null ? null : Math.round(v * 100) / 100);
+    const nh = now ? now.heat : null;
+    const dh = nh == null ? 0 : nh - w.base_heat;
+    let status = 'Steady';
+    if (!now) status = 'No new data';
+    else if ((now.zone === 'Crowded' || now.zone === 'Fading') && now.zone !== w.base_zone) status = 'Becoming a problem';
+    else if (dh >= 0.3 || (now.stage > w.base_stage && now.zone !== 'Crowded')) status = 'Trending harder';
+    else if (dh <= -0.3) status = 'Cooling off';
+    const fresh = radar.filter((s) => s.field === w.field && s.date >= w.since).sort((a, b) => (a.date < b.date ? 1 : -1));
+    return {
+      field: w.field, since: w.since,
+      base_heat: w.base_heat, base_stage: w.base_stage, base_zone: w.base_zone,
+      heat_30d_ago: r2(ago), now_heat: r2(nh), now_stage: now ? now.stage : null, now_zone: now ? now.zone : null,
+      change_since: r2(dh), change_30d: ago == null || nh == null ? null : r2(nh - ago),
+      new_signals: fresh.length, latest: fresh.length ? fresh[0].signal : '', status,
+    };
+  }),
+});
+</script>
+<script>
 dash.calc('heat', {
   inputs: ['radar', 'edges'],
   title: 'Heat by field',
@@ -463,6 +643,47 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
 </script>
 <script>
 (() => {
+  const card = document.getElementById('trenddetail');
+  const cards = { trend: card, person: document.getElementById('persondetail'), risk: document.getElementById('riskdetail') };
+  const open = (kind, name) => {
+    if (!name || !cards[kind]) return;
+    Object.entries(cards).forEach(([k, c]) => { if (c) c.hidden = k !== kind; });
+    dash.setParams({ trend: kind === 'trend' ? name : null, person: kind === 'person' ? name : null, risk: kind === 'risk' ? name : null });
+    cards[kind].scrollIntoView({ block: 'start', behavior: 'smooth' });
+  };
+  window.ffPick = (name) => open('trend', name);
+  window.ffOpen = open;
+  document.querySelector('.ff').addEventListener('click', (ev) => {
+    if (ev.target.closest('a')) return;
+    const el = ev.target.closest('[data-trend],[data-person],[data-risk]');
+    if (!el) return;
+    if (el.hasAttribute('data-person')) open('person', el.getAttribute('data-person'));
+    else if (el.hasAttribute('data-risk')) open('risk', el.getAttribute('data-risk'));
+    else open('trend', el.getAttribute('data-trend'));
+  });
+  document.querySelectorAll('.ff .closebtn').forEach((b) => b.addEventListener('click', () => {
+    Object.values(cards).forEach((c) => { if (c) c.hidden = true; });
+    dash.setParams({ trend: null, person: null, risk: null });
+  }));
+})();
+</script>
+<script>
+(() => {
+  document.querySelectorAll('.ff .sw.cat').forEach((s) => {
+    const i = Math.max(0, (window.FF_CATS || []).indexOf(s.dataset.cat));
+    s.style.background = dash.colors[i % dash.colors.length];
+  });
+  document.querySelectorAll('.ff .zbtn').forEach((b) => b.addEventListener('click', () => {
+    const z = window.ffZoom; if (!z) return;
+    const t = z.svg.transition().duration(300);
+    if (b.dataset.zoom === 'in') z.zoom.scaleBy(t, 1.6);
+    else if (b.dataset.zoom === 'out') z.zoom.scaleBy(t, 1 / 1.6);
+    else z.zoom.transform(t, d3.zoomIdentity);
+  }));
+})();
+</script>
+<script>
+(() => {
   const NOW = 2026.84;
   const fmtY = d3.format('.1f');
   const ok = (id) => dash.data(id).status === 'ok';
@@ -504,7 +725,11 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     tb.replaceChildren();
     rows('people').forEach((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.signal;
-      [r.date, r.field, r.signal].forEach((v) => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+      const who = personFor(r);
+      const tw = document.createElement('td');
+      if (who) { tw.textContent = who.name; tw.dataset.person = who.name; tw.className = 'tlink'; } else tw.textContent = '—';
+      tr.appendChild(tw);
+      [r.date, r.field, r.signal].forEach((v, i) => { const td = document.createElement('td'); td.textContent = v; if (i === 1) { td.dataset.trend = r.field; td.className = 'tlink'; } tr.appendChild(td); });
       const td = document.createElement('td');
       if (r.url) { const a = document.createElement('a'); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source; td.appendChild(a); } else td.textContent = r.source;
       tr.appendChild(td); tb.appendChild(tr);
@@ -520,6 +745,7 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
       const cells = [r.date, r.field, r.category, r.signal, r.stage];
       cells.forEach((v, i) => {
         const td = document.createElement('td'); td.textContent = v;
+        if (i === 1) { td.dataset.trend = r.field; td.className = 'tlink'; }
         if (i === 4) td.className = r.heat >= 3 ? 'hot' : r.heat === 2 ? 'warm' : 'cold';
         tr.appendChild(td);
       });
@@ -642,41 +868,92 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     el.replaceChildren();
     const data = rows('map');
     if (!data.length) return;
-    const W = Math.max(300, el.clientWidth), H = Math.min(440, Math.max(320, W * 0.6));
-    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const radar = rows('radar');
+    const cats = window.FF_CATS;
+    const catColor = (c) => dash.colors[Math.max(0, cats.indexOf(c)) % dash.colors.length];
+    const W = Math.max(300, el.clientWidth), H = Math.min(480, Math.max(340, W * 0.62));
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('touch-action', 'pan-y');
     const m = { l: 14, r: 14, t: 14, b: 44 };
+    const clipId = 'ffclip';
+    svg.append('clipPath').attr('id', clipId).append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b);
     const x = d3.scaleLinear([0.5, 6.5], [m.l, W - m.r]);
     const hmax = Math.max(1, d3.max(data, (d) => d.heat)), hmin = Math.min(-0.5, d3.min(data, (d) => d.heat));
     const y = d3.scaleLinear([hmin, hmax * 1.15], [H - m.b, m.t]);
-    const bands = [[0.5, 2.5, 'Get in early'], [2.5, 4.5, 'Hot now'], [4.5, 6.5, 'Crowded']];
-    svg.append('g').selectAll('rect').data(bands).join('rect')
-      .attr('x', (b) => x(b[0])).attr('width', (b) => x(b[1]) - x(b[0])).attr('y', m.t).attr('height', H - m.b - m.t)
-      .style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.07);
-    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
-    const stageLbl = W < 520 ? ['Emerging', 'Money', 'Main-\nstream', 'How-tos', 'Social', 'Crowded'] : ['Emerging', 'Money pours in', 'Goes mainstream', 'How-tos boom', 'Social flood', 'Crowded'];
-    svg.append('g').selectAll('text').data(stageLbl).join('text')
-      .attr('x', (s, i) => x(i + 1)).attr('y', H - m.b + 16).attr('text-anchor', 'middle')
-      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((s) => s.replace('\n', ''));
-    svg.append('text').attr('x', W / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)')
-      .style('font-size', 'var(--cds-font-size-caption)').text('Lifecycle stage →');
-    svg.append('text').attr('x', m.l + 4).attr('y', m.t + 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('↑ Hotter');
     const r = d3.scaleSqrt([1, Math.max(2, d3.max(data, (d) => d.signals))], [7, 20]);
-    const pts = data.map((d) => ({ ...d, px: x(d.stage), py: y(d.heat), rr: r(d.signals) }));
-    d3.group(pts, (d) => d.stage).forEach((g) => { const n = g.length; g.sort((a, b) => b.heat - a.heat).forEach((d, i) => { d.px += (i - (n - 1) / 2) * Math.min(26, (x(1.9) - x(1)) / Math.max(1, n)); }); });
+    const pts = data.map((d) => ({ ...d, rr: r(d.signals) }));
+    d3.group(pts, (d) => d.stage).forEach((g) => {
+      const n = g.length;
+      g.sort((a, b) => b.heat - a.heat).forEach((d, i) => { d.sx = d.stage + (n > 1 ? -0.38 + (0.76 * i) / (n - 1) : 0); });
+    });
+    pts.forEach((d) => {
+      const sig = radar.filter((s) => s.field === d.field);
+      const g = Array.from(d3.rollup(sig, (v) => ({ n: v.length, h: d3.mean(v, (s) => s.heat) }), (s) => s.category));
+      d.sats = g.map(([c, v], i) => ({ field: d.field, cat: c, n: v.n, h: v.h, a: -Math.PI / 2 + (i / Math.max(1, g.length)) * 2 * Math.PI }));
+    });
+    const view = svg.append('g').attr('clip-path', `url(#${clipId})`);
+    const bands = [[0.5, 2.5, 'Get in early'], [2.5, 4.5, 'Hot now'], [4.5, 6.5, 'Crowded']];
+    const bandSel = view.append('g').selectAll('rect').data(bands).join('rect').style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.07).attr('y', m.t).attr('height', H - m.b - m.t);
+    const zero = view.append('line').attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    const linkG = view.append('g'), satG = view.append('g'), bubG = view.append('g');
+    const stageLbl = W < 520 ? ['Emerging', 'Money', 'Mainstream', 'How-tos', 'Social', 'Crowded'] : ['Emerging', 'Money pours in', 'Goes mainstream', 'How-tos boom', 'Social flood', 'Crowded'];
+    const stageText = svg.append('g').selectAll('text').data(stageLbl).join('text').attr('y', H - m.b + 16).attr('text-anchor', 'middle')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((s) => s);
+    svg.append('text').attr('x', W / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Lifecycle stage →');
+    svg.append('text').attr('x', m.l + 4).attr('y', m.t + 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('↑ Hotter');
     const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
-    const gs = svg.append('g').selectAll('g').data(pts).join('g').attr('transform', (d) => `translate(${d.px},${d.py})`).style('cursor', 'pointer');
-    gs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone]).attr('fill-opacity', 0.75).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
-    gs.append('text').attr('y', (d) => -d.rr - 4).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)')
-      .style('font-size', 'var(--cds-font-size-caption)').text((d) => (W < 520 && d.field.length > 16 ? d.field.slice(0, 15) + '…' : d.field));
-    gs.on('pointerenter pointermove click', (ev, d) => {
+    const showTip = (ev, lines) => {
       const [px, py] = d3.pointer(ev, el);
       tip.style('display', null).replaceChildren();
-      tip.append('div').attr('class', 't').text(d.field);
-      tip.append('div').text(`${d.zone} · heat ${d3.format('.2f')(d.heat)}`);
-      tip.append('div').text(`${d.signals} signal${d.signals === 1 ? '' : 's'} so far`);
+      lines.forEach((l, i) => tip.append('div').attr('class', i === 0 ? 't' : null).text(l));
       const tw = tip.node().offsetWidth;
       tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
-    }).on('pointerleave', () => tip.style('display', 'none'));
+    };
+    const hideTip = () => tip.style('display', 'none');
+    const links = linkG.selectAll('line').data(pts.flatMap((d) => d.sats.map((s) => ({ d, s })))).join('line')
+      .attr('stroke', (o) => catColor(o.s.cat)).attr('stroke-opacity', 0.55).attr('stroke-width', 1.5);
+    const sats = satG.selectAll('g').data(pts.flatMap((d) => d.sats)).join('g').attr('data-trend', (s) => s.field)
+      .on('pointerenter pointermove', (ev, s) => showTip(ev, [`${s.field} · ${s.cat}`, `${s.n} signal${s.n === 1 ? '' : 's'}, ${s.h >= 2.5 ? 'heating up' : s.h >= 1.5 ? 'building' : 'cooling'}`, 'Tap to see why']))
+      .on('pointerleave', hideTip);
+    sats.append('circle').attr('r', (s) => 3.5 + Math.sqrt(s.n) * 1.8).style('fill', (s) => catColor(s.cat)).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
+    const satLbl = sats.append('text').attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text((s) => s.cat);
+    const bubs = bubG.selectAll('g').data(pts).join('g').attr('data-trend', (d) => d.field)
+      .on('pointerenter pointermove', (ev, d) => showTip(ev, [d.field, `${d.zone} · heat ${d3.format('.2f')(d.heat)}`, `${d.signals} signal${d.signals === 1 ? '' : 's'} · tap for why`]))
+      .on('pointerleave', hideTip);
+    bubs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone]).attr('fill-opacity', 0.78).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    const bubLbl = bubs.append('text').attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+      .attr('y', (d) => -d.rr - 4).text((d) => d.field);
+    const render = (t) => {
+      const xs = t.rescaleX(x), ys = t.rescaleY(y), k = t.k;
+      bandSel.attr('x', (b) => xs(b[0])).attr('width', (b) => xs(b[1]) - xs(b[0]));
+      zero.attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(0)).attr('y2', ys(0));
+      stageText.attr('x', (s, i) => xs(i + 1)).attr('display', (s, i) => (xs(i + 1) < m.l || xs(i + 1) > W - m.r ? 'none' : null));
+      pts.forEach((d) => { d.px = xs(d.sx); d.py = ys(d.heat); });
+      bubs.attr('transform', (d) => `translate(${d.px},${d.py})`);
+      const full = W < 520 && k < 1.5;
+      bubLbl.text((d) => (full && d.field.length > 14 ? d.field.slice(0, 13) + '…' : d.field));
+      const showSats = k >= 1.8, ring = (d) => d.rr + 16 + Math.min(18, (k - 1.8) * 8);
+      links.attr('display', showSats ? null : 'none')
+        .attr('x1', (o) => o.d.px).attr('y1', (o) => o.d.py)
+        .attr('x2', (o) => o.d.px + ring(o.d) * Math.cos(o.s.a)).attr('y2', (o) => o.d.py + ring(o.d) * Math.sin(o.s.a));
+      sats.attr('display', showSats ? null : 'none').attr('transform', (s) => {
+        const d = pts.find((p) => p.field === s.field);
+        return `translate(${d.px + ring(d) * Math.cos(s.a)},${d.py + ring(d) * Math.sin(s.a)})`;
+      });
+      satLbl.attr('display', k >= 3 ? null : 'none').attr('text-anchor', (s) => (Math.cos(s.a) < -0.2 ? 'end' : 'start')).attr('x', (s) => (Math.cos(s.a) < -0.2 ? -8 : 8));
+      svg.style('touch-action', k > 1.01 ? 'none' : 'pan-y');
+    };
+    const zoom = d3.zoom().scaleExtent([1, 8]).extent([[m.l, m.t], [W - m.r, H - m.b]]).translateExtent([[m.l, m.t], [W - m.r, H - m.b]])
+      .filter((ev) => {
+        if (ev.type === 'wheel') return ev.ctrlKey || ev.metaKey;
+        if (ev.type === 'touchstart') return ev.touches.length > 1 || d3.zoomTransform(svg.node()).k > 1.01;
+        return !ev.button;
+      })
+      .on('zoom', (ev) => { window.ffZoomT = ev.transform; hideTip(); render(ev.transform); });
+    svg.call(zoom).on('dblclick.zoom', null);
+    window.ffZoom = { zoom, svg };
+    const start = window.ffZoomT || d3.zoomIdentity;
+    svg.call(zoom.transform, start);
+    render(start);
     el.style.minHeight = H + 'px';
   });
 
@@ -786,15 +1063,178 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     const x = d3.scaleLinear([0, 100], [m.l, W - m.r]);
     const y = d3.scaleBand(data.map((d) => d.category), [m.t, H - m.b]).padding(0.3);
     svg.append('g').selectAll('rect.bg').data(data).join('rect').attr('class', 'bg').attr('x', m.l).attr('width', x(100) - m.l)
-      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3).style('fill', 'var(--cds-chart-grid)');
+      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3).style('fill', 'var(--cds-chart-grid)').attr('data-risk', (d) => d.category);
     svg.append('g').selectAll('rect.v').data(data).join('rect').attr('class', 'v').attr('x', m.l).attr('width', (d) => Math.max(2, x(d.level) - m.l))
-      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3).style('fill', (d) => riskColor(d.level));
+      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3).style('fill', (d) => riskColor(d.level)).attr('data-risk', (d) => d.category);
     svg.append('g').selectAll('text.l').data(data).join('text').attr('class', 'l').attr('x', 0).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
-      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((d) => d.category);
+      .attr('fill', 'var(--color-fg-muted)').attr('data-risk', (d) => d.category).attr('text-decoration', 'underline').style('font-size', 'var(--cds-font-size-caption)').text((d) => d.category);
     const arrow = { up: '↑', down: '↓', flat: '→' };
     svg.append('g').selectAll('text.n').data(data).join('text').attr('class', 'n').attr('x', W - m.r + 6).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
       .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text((d) => `${d.level} ${arrow[d.trend] || ''}`);
     el.style.minHeight = H + 'px';
+  });
+
+  const picked = () => dash.params().trend || null;
+  const sigFor = (f) => rows('radar').filter((r) => r.field === f).sort((a, b) => (a.date < b.date ? 1 : -1));
+  const link = (r) => {
+    if (!r.url) return document.createTextNode(r.source || '');
+    const a = document.createElement('a'); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source; return a;
+  };
+  dash.draw('tdpick', (sel) => {
+    const names = rows('map').map((r) => r.field).sort((a, b) => a.localeCompare(b));
+    sel.replaceChildren(new Option('Choose a trend…', ''), ...names.map((n) => new Option(n, n)));
+    sel.value = picked() && names.includes(picked()) ? picked() : '';
+    sel.onchange = () => { if (sel.value) window.ffPick(sel.value); };
+  });
+  dash.draw('tdname', (el) => setText(el, picked() || '—'));
+  dash.draw('tdstats', (el) => {
+    const m = rows('map').find((r) => r.field === picked());
+    setText(el, m ? `${m.zone} · stage ${m.stage} of 6 · heat ${d3.format('.2f')(m.heat)} · ${m.signals} signal${m.signals === 1 ? '' : 's'}` : (picked() ? 'No live signals for this one yet.' : '—'));
+  });
+  dash.draw('tdwhy', (el) => {
+    const f = picked(); if (!f) { setText(el, '—'); return; }
+    const b = rows('briefs').find((r) => r.field === f);
+    if (b) { setText(el, b.why); return; }
+    const s = sigFor(f);
+    if (!s.length) { setText(el, 'The collector has no signals for this trend yet.'); return; }
+    const top = Array.from(d3.rollup(s, (v) => v.length, (r) => r.category)).sort((a, b) => b[1] - a[1]).slice(0, 2).map((e) => e[0]);
+    setText(el, `Driven mostly by ${top.join(' and ').toLowerCase()} signals. Latest: ${s[0].signal}`);
+  });
+  dash.draw('tdwatch', (el) => {
+    const b = rows('briefs').find((r) => r.field === picked());
+    setText(el, b ? b.watch : (picked() ? 'A brief arrives with the collector\'s next run.' : '—'));
+  });
+  dash.draw('tdfore', (el) => {
+    const f = picked(); const d = rows('projection').filter((r) => r.field === f);
+    if (!d.length) { setText(el, '—'); return; }
+    const act = d.filter((r) => r.kind === 'actual'), fc = d.filter((r) => r.kind === 'forecast');
+    const now = act[act.length - 1].heat, end = fc[fc.length - 1];
+    const dir = end.heat > now + 0.1 ? 'keep heating up' : end.heat < now - 0.1 ? 'cool off' : 'hold steady';
+    setText(el, `Heat ${d3.format('.2f')(now)} now. Over the next ${end.horizon_weeks} weeks it's forecast to ${dir}, reaching about ${d3.format('.2f')(end.heat)} (range ${d3.format('.2f')(end.lo)} to ${d3.format('.2f')(end.hi)}).`);
+  });
+  dash.draw('tddrivers', (el) => {
+    el.replaceChildren();
+    const s = sigFor(picked());
+    Array.from(d3.rollup(s, (v) => ({ n: v.length, h: d3.mean(v, (r) => r.heat) }), (r) => r.category)).sort((a, b) => b[1].n - a[1].n)
+      .forEach(([c, v]) => {
+        const sp = document.createElement('span'); sp.className = 'chip';
+        sp.style.borderColor = v.h >= 2.5 ? 'var(--color-ok)' : v.h >= 1.5 ? 'var(--color-warn)' : 'var(--color-bad)';
+        sp.textContent = `${c} · ${v.n}`; el.appendChild(sp);
+      });
+  });
+  const listInto = (el, items, empty) => {
+    el.replaceChildren();
+    if (!items.length) { const li = document.createElement('li'); li.className = 'meta'; li.textContent = empty; el.appendChild(li); return; }
+    items.forEach((r) => {
+      const li = document.createElement('li');
+      const t = document.createElement('div'); t.textContent = r.signal; li.appendChild(t);
+      const m = document.createElement('div'); m.className = 'meta';
+      m.appendChild(document.createTextNode(`${d3.utcFormat('%b %-d, %Y')(new Date(r.date))} · ${r.category} · `)); m.appendChild(link(r));
+      li.appendChild(m); el.appendChild(li);
+    });
+  };
+  const personFor = (r) => rows('people').find((pp) => (pp.match || [pp.name]).some((m) => (r.signal || '').includes(m)));
+  const pickedP = () => dash.params().person || null;
+  const pickedR = () => dash.params().risk || null;
+  const person = () => rows('people').find((pp) => pp.name === pickedP());
+  const pSignals = () => { const pp = person(); return pp ? rows('radar').filter((r) => (pp.match || [pp.name]).some((m) => (r.signal || '').includes(m))).sort((a, b) => (a.date < b.date ? 1 : -1)) : []; };
+  dash.draw('tdbg', (el) => { const b = rows('briefs').find((r) => r.field === picked()); setText(el, b && b.background ? b.background : (picked() ? 'Background arrives with the next collector run.' : '—')); });
+  dash.draw('pdname', (el) => setText(el, pickedP() || '—'));
+  dash.draw('pdrole', (el) => { const pp = person(); setText(el, pp ? pp.role : (pickedP() ? 'Profile coming with the next collector run.' : '—')); });
+  dash.draw('pdbg', (el) => { const pp = person(); setText(el, pp ? pp.background : '—'); });
+  dash.draw('pdwhy', (el) => { const pp = person(); setText(el, pp ? pp.why : '—'); });
+  dash.draw('pdtrends', (el) => {
+    el.replaceChildren();
+    [...new Set(pSignals().map((r) => r.field))].forEach((f) => { const sp = document.createElement('span'); sp.className = 'chip tlink'; sp.dataset.trend = f; sp.textContent = f; el.appendChild(sp); });
+  });
+  dash.draw('pdsignals', (el) => listInto(el, pSignals(), 'Nothing logged yet.'));
+  const riskRow = () => rows('risk').find((r) => r.category === pickedR());
+  const riskInfo = () => rows('riskinfo').find((r) => r.category === pickedR());
+  dash.draw('rdname', (el) => setText(el, pickedR() || '—'));
+  dash.draw('rdlevel', (el) => { const r = riskRow(); setText(el, r ? `Level ${r.level} of 100 · ${riskWord(r.level)} · ${r.trend === 'up' ? 'rising' : r.trend === 'down' ? 'falling' : 'holding steady'}` : '—'); });
+  dash.draw('rdwhy', (el) => {
+    el.replaceChildren();
+    const r = riskRow(); if (!r) { el.textContent = '—'; return; }
+    el.appendChild(document.createTextNode(r.basis + ' '));
+    if (r.url) { const a = document.createElement('a'); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `(${r.source})`; el.appendChild(a); }
+  });
+  dash.draw('rdbg', (el) => { const r = riskInfo(); setText(el, r ? r.background : '—'); });
+  dash.draw('rdwatch', (el) => { const r = riskInfo(); setText(el, r ? r.watch : '—'); });
+  dash.draw('rdodds', (el) => {
+    el.replaceChildren();
+    const keys = (riskInfo() || {}).odds_keys || [];
+    const list = rows('odds').filter((o) => keys.includes(o.key));
+    if (!list.length) { const li = document.createElement('li'); li.className = 'meta'; li.textContent = 'No published estimates tracked for this one yet.'; el.appendChild(li); return; }
+    list.forEach((o) => {
+      const li = document.createElement('li');
+      const t = document.createElement('div'); t.textContent = `${o.label}: ${d3.format('~g')(o.value)}%`; li.appendChild(t);
+      const m2 = document.createElement('div'); m2.className = 'meta'; m2.appendChild(document.createTextNode(`${o.who} · `));
+      if (o.url) { const a = document.createElement('a'); a.href = o.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = o.source; m2.appendChild(a); } else m2.appendChild(document.createTextNode(o.source));
+      li.appendChild(m2); el.appendChild(li);
+    });
+  });
+
+  dash.draw('tdpeople', (el) => listInto(el, sigFor(picked()).filter((r) => r.category === 'Key people'), 'No key people logged for this trend yet.'));
+  dash.draw('tdsignals', (el) => listInto(el, sigFor(picked()), 'No signals yet.'));
+
+  const STATUS = { 'Trending harder': 'var(--color-ok)', 'Cooling off': 'var(--color-warn)', 'Becoming a problem': 'var(--color-bad)', 'Steady': 'var(--color-fg-muted)', 'No new data': 'var(--color-fg-muted)' };
+  const signed = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${d3.format('.2f')(v)}`);
+  dash.draw('tdwatchstate', (el) => {
+    const f = picked(); if (!f) { setText(el, '—'); return; }
+    const w = rows('watchlist').find((r) => r.field === f);
+    el.style.color = w ? 'var(--color-ok)' : 'var(--color-fg-muted)';
+    setText(el, w ? `★ On your watchlist since ${d3.utcFormat('%b %-d')(new Date(w.since))}` : `Not on your watchlist. Tell Claude “watch ${f}” to get alerts on it.`);
+  });
+  dash.draw('wcards', (el) => {
+    el.replaceChildren();
+    const list = rows('watched');
+    if (dash.data('watched').status === 'ok' && !list.length) { const p0 = document.createElement('p'); p0.className = 'wmeta'; p0.textContent = 'Nothing watched yet.'; el.appendChild(p0); return; }
+    const order = { 'Becoming a problem': 0, 'Trending harder': 1, 'Cooling off': 2, 'Steady': 3, 'No new data': 4 };
+    list.slice().sort((a, b) => order[a.status] - order[b.status]).forEach((w) => {
+      const c = document.createElement('div'); c.className = 'wcard';
+      const top = document.createElement('div'); top.className = 'wtop';
+      const nm = document.createElement('span'); nm.className = 'wname tlink'; nm.dataset.trend = w.field; nm.textContent = w.field; top.appendChild(nm);
+      const pill = document.createElement('span'); pill.className = 'pill'; pill.style.color = STATUS[w.status]; pill.textContent = w.status; top.appendChild(pill);
+      c.appendChild(top);
+      const row = document.createElement('div'); row.className = 'wrow';
+      [['30 days ago', w.heat_30d_ago], ['Since watching', w.base_heat], ['Now', w.now_heat]].forEach(([l, v]) => {
+        const cell = document.createElement('div'); cell.className = 'wcell';
+        const lab = document.createElement('span'); lab.className = 'label'; lab.textContent = l; cell.appendChild(lab);
+        const b = document.createElement('b'); b.textContent = v == null ? '—' : d3.format('.2f')(v); cell.appendChild(b);
+        row.appendChild(cell);
+      });
+      c.appendChild(row);
+      const ch = document.createElement('div'); ch.className = 'wmeta';
+      ch.textContent = `Heat ${signed(w.change_30d)} in 30 days, ${signed(w.change_since)} since you started watching. ${w.base_zone} → ${w.now_zone || '—'}.`;
+      c.appendChild(ch);
+      const s = rows('trend').filter((r) => r.field === w.field);
+      if (s.length > 1) {
+        const sw = Math.max(200, el.clientWidth > 600 ? 260 : el.clientWidth - 40), sh = 40;
+        const sv = d3.select(c).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${sw} ${sh}`).attr('preserveAspectRatio', 'none').style('height', sh + 'px');
+        const xx = d3.scaleLinear([0, s.length - 1], [2, sw - 2]);
+        const ext = d3.extent(s, (r) => r.heat); if (ext[0] === ext[1]) { ext[0] -= 0.5; ext[1] += 0.5; }
+        const yy = d3.scaleLinear(ext, [sh - 3, 3]);
+        sv.append('path').attr('d', d3.line().x((r, i) => xx(i)).y((r) => yy(r.heat))(s)).attr('fill', 'none').attr('stroke', STATUS[w.status] === 'var(--color-fg-muted)' ? dash.colors[0] : STATUS[w.status]).attr('stroke-width', 2).attr('vector-effect', 'non-scaling-stroke');
+      }
+      const lt = document.createElement('div'); lt.className = 'wmeta';
+      lt.textContent = w.new_signals ? `${w.new_signals} new signal${w.new_signals === 1 ? '' : 's'} since you started watching. Latest: ${w.latest}` : 'No new signals since you started watching.';
+      c.appendChild(lt);
+      el.appendChild(c);
+    });
+  });
+  dash.draw('alist', (el) => {
+    el.replaceChildren();
+    const a = rows('alerts').slice().sort((x, y) => (x.at < y.at ? 1 : -1));
+    if (!a.length) { const li = document.createElement('li'); li.className = 'meta'; li.textContent = 'No alerts yet. The collector checks your watched trends every 6 hours.'; el.appendChild(li); return; }
+    a.slice(0, 40).forEach((r) => {
+      const li = document.createElement('li');
+      const t = document.createElement('div');
+      const nm = document.createElement('span'); nm.className = 'tlink'; nm.dataset.trend = r.field; nm.textContent = r.field; t.appendChild(nm);
+      t.appendChild(document.createTextNode(` · ${r.kind}`)); t.style.color = STATUS[r.kind] || 'var(--color-fg)'; li.appendChild(t);
+      const m2 = document.createElement('div'); m2.textContent = r.text; li.appendChild(m2);
+      const m3 = document.createElement('div'); m3.className = 'meta'; m3.textContent = d3.utcFormat('%b %-d, %Y %H:%M UTC')(new Date(r.at)); li.appendChild(m3);
+      el.appendChild(li);
+    });
   });
 
   const topTrends = () => {
@@ -807,7 +1247,7 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
   dash.draw('fclegend', (el) => {
     el.replaceChildren();
     topTrends().forEach((f, i) => {
-      const sp = document.createElement('span'); const sw = document.createElement('i'); sw.className = 'sw';
+      const sp = document.createElement('span'); sp.dataset.trend = f; const sw = document.createElement('i'); sw.className = 'sw';
       sw.style.background = dash.colors[i % dash.colors.length]; sp.appendChild(sw); sp.appendChild(document.createTextNode(f)); el.appendChild(sp);
     });
   });
@@ -883,10 +1323,10 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
       const ends = series.map((s, i) => ({ f: s.f, y: y(s.v[s.v.length - 1].h), c: dash.colors[i % dash.colors.length] })).sort((a, b) => a.y - b.y);
       for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
       svg.append('g').selectAll('text').data(ends).join('text').attr('x', W - m.r + 6).attr('y', (d) => d.y).attr('dy', '0.35em')
-        .style('fill', (d) => d.c).style('font-size', 'var(--cds-font-size-caption)').text((d) => d.f);
+        .style('fill', (d) => d.c).attr('data-trend', (d) => d.f).style('font-size', 'var(--cds-font-size-caption)').text((d) => d.f);
     } else {
       const lg = d3.select(el).append('div').attr('class', 'legend');
-      series.forEach((s, i) => { const sp = lg.append('span'); sp.append('i').attr('class', 'sw').style('background', dash.colors[i % dash.colors.length]); sp.append('span').text(s.f); });
+      series.forEach((s, i) => { const sp = lg.append('span').attr('data-trend', s.f); sp.append('i').attr('class', 'sw').style('background', dash.colors[i % dash.colors.length]); sp.append('span').text(s.f); });
     }
     el.style.minHeight = H + 'px';
   });
@@ -908,7 +1348,7 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
     svg.append('g').selectAll('rect').data(data).join('rect')
       .attr('x', (d) => m.l + cats.indexOf(d.category) * cw + 1).attr('y', (d) => m.t + fields.indexOf(d.field) * ch + 1)
-      .attr('width', cw - 2).attr('height', ch - 2).attr('rx', 3)
+      .attr('width', cw - 2).attr('height', ch - 2).attr('rx', 3).attr('data-trend', (d) => d.field)
       .style('fill', (d) => (d.heat < 0 ? 'var(--cds-chart-status-critical)' : d.heat > 0 ? dash.colors[0] : 'var(--cds-chart-grid)'))
       .attr('fill-opacity', (d) => (d.heat === 0 ? 0.5 : 0.15 + 0.85 * Math.abs(d.heat) / max))
       .on('pointerenter pointermove', (ev, d) => {
@@ -921,7 +1361,7 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
       })
       .on('pointerleave', () => tip.style('display', 'none'));
     const fl = svg.append('g').selectAll('text').data(fields).join('text').attr('x', 0).attr('y', (f, i) => m.t + i * ch + ch / 2).attr('dy', '0.35em')
-      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((f) => f);
+      .attr('fill', 'var(--color-fg-muted)').attr('data-trend', (f) => f).style('font-size', 'var(--cds-font-size-caption)').text((f) => f);
     fl.each(function () { const s = this; let t = s.textContent; while (s.getComputedTextLength() > lw - 8 && t.length > 4) { t = t.slice(0, -2); s.textContent = t + '…'; } });
     svg.append('g').selectAll('text').data(cats).join('text')
       .attr('transform', (c, i) => `translate(${m.l + i * cw + cw / 2},${m.t - 6}) rotate(-45)`)
@@ -982,8 +1422,8 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     const data = rows('heat').slice().sort((a, b) => b.jobs_incoming - a.jobs_incoming);
     tb.replaceChildren();
     data.forEach((r) => {
-      const tr = document.createElement('tr'); tr.dataset.key = r.field;
-      [[r.field, ''], [d3.format('.2f')(r.heat_now), 'r'], [d3.format('.2f')(r.jobs_incoming), 'r'], [d3.format('.2f')(r.courses_incoming), 'r'], [r.outlook, '']].forEach(([v, c], i) => {
+      const tr = document.createElement('tr'); tr.dataset.key = r.field; tr.dataset.trend = r.field;
+      [[r.field, 'tlink'], [d3.format('.2f')(r.heat_now), 'r'], [d3.format('.2f')(r.jobs_incoming), 'r'], [d3.format('.2f')(r.courses_incoming), 'r'], [r.outlook, '']].forEach(([v, c], i) => {
         const td = document.createElement('td'); td.textContent = v; if (c) td.className = c;
         if (i === 4) td.classList.add(r.outlook === 'Opportunity building' ? 'hot' : r.outlook === 'Crowding coming' || r.outlook === 'Cooling' ? 'cold' : 'warm');
         tr.appendChild(td);

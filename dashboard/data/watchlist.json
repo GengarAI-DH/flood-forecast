@@ -1,0 +1,42 @@
+[
+{
+"field": "Gold",
+"since": "2026-11-05",
+"base_heat": -0.38,
+"base_stage": 6,
+"base_zone": "Fading",
+"base_signals": 2
+},
+{
+"field": "Robotics technician",
+"since": "2026-11-05",
+"base_heat": 1.63,
+"base_stage": 4,
+"base_zone": "Hot now",
+"base_signals": 4
+},
+{
+"field": "Humanoid robot field service",
+"since": "2026-11-05",
+"base_heat": 3.6,
+"base_stage": 3,
+"base_zone": "Hot now",
+"base_signals": 6
+},
+{
+"field": "Agentic AI engineer",
+"since": "2026-11-05",
+"base_heat": 1.63,
+"base_stage": 3,
+"base_zone": "Hot now",
+"base_signals": 3
+},
+{
+"field": "Data center critical-facilities tech",
+"since": "2026-11-05",
+"base_heat": 1.59,
+"base_stage": 4,
+"base_zone": "Hot now",
+"base_signals": 4
+}
+]

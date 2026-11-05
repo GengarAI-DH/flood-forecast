@@ -1,0 +1,54 @@
+[
+{
+"category": "Nuclear and war",
+"background": "Nine countries have nuclear weapons, and the closest call came in the 1962 Cuban Missile Crisis. The arms-control treaties that capped US and Russian arsenals have lapsed one by one; New START, the last of them, reached its end date in February 2026. Wars in Ukraine and the Middle East keep tension high.",
+"watch": "Talks on a new arms deal, nuclear threats from leaders, and any fighting that directly pits nuclear powers against each other.",
+"odds_keys": [
+"nuke",
+"sam_war",
+"sam_ww3"
+]
+},
+{
+"category": "Climate and disasters",
+"background": "The planet has warmed about 1.3\u00b0C since pre-industrial times, and 2024 was the first calendar year above 1.5\u00b0C. Heat waves, floods and wildfires have grown more frequent and costly.",
+"watch": "Record heat years, major crop failures, and whether the biggest emitters cut emissions faster.",
+"odds_keys": [
+"sam_climate"
+]
+},
+{
+"category": "AI risk",
+"background": "Warnings went mainstream in 2023, when hundreds of AI leaders signed a statement that reducing the risk of extinction from AI should be a global priority. Governments set up AI safety institutes, but the race to build more capable systems keeps speeding up.",
+"watch": "Big jumps in AI capability, serious misuse incidents, and whether countries agree on shared rules.",
+"odds_keys": [
+"ai_super",
+"ai_expert",
+"ai_researchers",
+"sam_ai"
+]
+},
+{
+"category": "Pandemics",
+"background": "COVID-19 killed millions after 2020, and the 1918 flu killed tens of millions. Bird flu (H5N1) spreading in US dairy cattle since 2024 is being watched closely because flu viruses can mutate to spread between people.",
+"watch": "Any human-to-human spread of bird flu or a new virus, and World Health Organization emergency declarations.",
+"odds_keys": [
+"sam_pandemic",
+"sam_bio"
+]
+},
+{
+"category": "Financial crash",
+"background": "Major crashes have come every decade or two: 1929, the 2000 dot-com bust and the 2008 financial crisis. Today's worries include record government debt, high stock valuations driven by AI, and interest rates that may rise again.",
+"watch": "Sudden bank or fund failures, AI stocks dropping sharply, and stress in government bond markets.",
+"odds_keys": [
+"sam_fin"
+]
+},
+{
+"category": "Grid, water and food",
+"background": "Power grids are straining under fast-growing demand from data centers and electrification. Droughts have hit major waterways like the Colorado River and the Panama Canal, and food prices spiked after Russia's 2022 invasion of Ukraine disrupted grain exports.",
+"watch": "Summer blackout warnings, water allocation cuts in the western US, and food price spikes.",
+"odds_keys": []
+}
+]
