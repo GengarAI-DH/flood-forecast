@@ -259,9 +259,44 @@
       .attr('transform', (d) => `translate(${d.rr * 0.72},${-d.rr * 0.72})`);
     badge.append('circle').attr('r', 7).style('fill', (d) => (BIG[wOf(d.field).status] === 'good' ? 'var(--color-ok)' : 'var(--color-bad)')).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
     badge.append('text').attr('text-anchor', 'middle').attr('dy', '0.36em').attr('fill', '#fff').style('font-size', '11px').style('font-weight', 700).text('!');
+    // Phone view: numbers inside the bubbles plus a ranked key under the map, instead of crowded labels.
+    const rankOf = new Map(pts.slice().sort((a, b) => b.heat - a.heat).map((d, i) => [d.field, i + 1]));
+    const bnum = bubs.append('text').attr('class', 'bnum').attr('text-anchor', 'middle').attr('dy', '0.35em').attr('pointer-events', 'none')
+      .style('font-size', (d) => (d.rr < 9 ? '8px' : '10px')).text((d) => rankOf.get(d.field));
+    const key = document.createElement('div'); key.className = 'mapkey'; el.appendChild(key);
+    const buildKey = () => {
+      const ranked = pts.slice().sort((a, b) => b.heat - a.heat);
+      const list = document.createElement('ol'); list.className = 'mapkey-list';
+      ranked.forEach((d, i) => {
+        const li = document.createElement('li'); li.className = 'tlink'; li.dataset.trend = d.field;
+        if (i >= 8) li.classList.add('mk-extra', 'is-off');
+        const n = document.createElement('span'); n.className = 'mk-n'; n.style.background = ZONE[d.zone]; n.textContent = rankOf.get(d.field); li.appendChild(n);
+        const nm = document.createElement('span'); nm.className = 'mk-name'; nm.textContent = d.field; li.appendChild(nm);
+        const w = wOf(d.field);
+        if (w && BIG[w.status]) { const bx = document.createElement('span'); bx.className = 'wbang'; bx.style.background = BIG[w.status] === 'good' ? 'var(--color-ok)' : 'var(--color-bad)'; bx.textContent = '!'; li.appendChild(bx); }
+        else if (w && !window.ffWatchBtn) { const st = document.createElement('span'); st.className = 'mk-star'; st.textContent = '★'; st.setAttribute('aria-label', 'Watching'); li.appendChild(st); }
+        const h = document.createElement('span'); h.className = 'mk-heat'; h.textContent = d3.format('.0f')(d.heat); li.appendChild(h);
+        if (window.ffWatchBtn) li.appendChild(window.ffWatchBtn(d.field));
+        list.appendChild(li);
+      });
+      key.appendChild(list);
+      if (ranked.length > 8) {
+        const more = document.createElement('button'); more.type = 'button'; more.className = 'mk-more';
+        const sAll = document.createElement('span'); sAll.textContent = `Show all ${ranked.length}`;
+        const sTop = document.createElement('span'); sTop.textContent = 'Show top 8'; sTop.className = 'is-off';
+        more.append(sAll, sTop);
+        more.addEventListener('click', () => {
+          const open = sTop.classList.contains('is-off');
+          list.querySelectorAll('.mk-extra').forEach((li) => li.classList.toggle('is-off', !open));
+          sAll.classList.toggle('is-off', open); sTop.classList.toggle('is-off', !open);
+        });
+        key.appendChild(more);
+      }
+    };
+    buildKey();
     const bubLbl = bubs.append('text').attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
       .attr('y', (d) => -d.rr - 4).text((d) => d.field);
-    const render = (t) => {
+    const render = (t, inDraw) => {
       const xs = t.rescaleX(x), ys = t.rescaleY(y), k = t.k;
       bandSel.attr('x', (b) => xs(b[0])).attr('width', (b) => xs(b[1]) - xs(b[0]));
       zero.attr('x1', m.l).attr('x2', W - m.r).attr('y1', ys(0)).attr('y2', ys(0));
@@ -269,6 +304,7 @@
       pts.forEach((d) => { d.px = xs(d.sx); d.py = ys(d.heat); });
       bubs.attr('transform', (d) => `translate(${d.px},${d.py})`);
       const full = W < 520 && k < 1.5;
+      const phoneMode = W < 520 && k < 1.6;
       bubLbl.text((d) => (full && d.field.length > 22 ? d.field.slice(0, 21) + '…' : d.field)).attr('display', null).attr('x', 0);
       // Place each label above, below, right or left of its bubble, whichever spot is free,
       // so labels don't cover other labels or bubbles and never run off the map.
@@ -302,8 +338,12 @@
         node.setAttribute('y', pick.base - d.py);
         kept.push(box);
       });
-      unlist.replaceChildren();
-      if (unl.length) {
+      if (phoneMode) bubLbl.attr('display', 'none');
+      // Only a drawing may add or remove page elements, so the list is rebuilt during the draw
+      // and simply hidden while zoomed in (the labels spread out then anyway).
+      unlist.classList.toggle('is-off', phoneMode || k > 1.01);
+      if (inDraw) unlist.replaceChildren();
+      if (inDraw && unl.length && !phoneMode) {
         const lead = document.createElement('span'); lead.className = 'unlead'; lead.textContent = 'Too close to label (tap a name or zoom in): '; unlist.appendChild(lead);
         unl.sort().forEach((f, i) => {
           const sp = document.createElement('span'); sp.className = 'tlink'; sp.dataset.trend = f; sp.textContent = f; unlist.appendChild(sp);
@@ -332,7 +372,7 @@
     window.ffZoom = { zoom, svg };
     const start = window.ffZoomT || d3.zoomIdentity;
     svg.call(zoom.transform, start);
-    render(start);
+    render(start, true);
     el.style.minHeight = H + 'px';
   });
 
@@ -636,6 +676,7 @@
       if (big) { const bx = document.createElement('span'); bx.className = 'wbang'; bx.style.background = big; bx.textContent = '!'; bx.setAttribute('aria-label', w.status === 'Trending harder' ? 'Big change, good' : 'Big change, bad'); top.appendChild(bx); }
       const nm = document.createElement('span'); nm.className = 'wname tlink'; nm.dataset.trend = w.field; nm.textContent = w.field; top.appendChild(nm);
       const pill = document.createElement('span'); pill.className = 'pill'; pill.style.color = STATUS[w.status]; pill.textContent = w.status; top.appendChild(pill);
+      if (window.ffWatchBtn) top.appendChild(window.ffWatchBtn(w.field));
       c.appendChild(top);
       const row = document.createElement('div'); row.className = 'wrow';
       [['30 days ago', w.heat_30d_ago], ['Since watching', w.base_heat], ['Now', w.now_heat]].forEach(([l, v]) => {

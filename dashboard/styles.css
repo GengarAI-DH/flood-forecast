@@ -105,3 +105,17 @@
 .ff .unlabeled .tlink { color: var(--color-fg); }
 .ff .wbang { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 13px; flex: none; margin-right: 6px; }
 .ff .wtop .wname { margin-right: auto; }
+.ff .bnum { fill: #fff; font-weight: 700; paint-order: stroke; stroke: rgba(0,0,0,0.35); stroke-width: 2px; }
+.ff .mapkey { margin-top: 10px; }
+.ff .mapkey[hidden] { display: none; }
+.ff .mapkey-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.ff .mapkey-list li { display: flex; align-items: center; gap: 10px; padding: 7px 4px; border-bottom: 1px solid var(--color-border-line); cursor: pointer; text-decoration: none; }
+.ff .mapkey-list li:last-child { border-bottom: 0; }
+.ff .mk-n { flex: none; width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #fff; font-size: 11px; font-weight: 700; }
+.ff .mk-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-fg); }
+.ff .mk-star { color: var(--color-warn); }
+.ff .mk-heat { flex: none; font-variant-numeric: tabular-nums; color: var(--color-fg-muted); min-width: 2.5ch; text-align: right; }
+.ff .mapkey-list .wbang { margin-right: 0; }
+.ff .mk-more { margin-top: 8px; background: none; border: 1px solid var(--color-border-line); color: var(--color-fg); border-radius: 999px; padding: 6px 14px; font: inherit; cursor: pointer; }
+.ff .is-off { display: none !important; }
+.ff .mapkey-list { grid-template-columns: minmax(0, 1fr); } .ff .mapkey-list li { min-width: 0; }
