@@ -82,6 +82,11 @@
 .ff .wcell b{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-heading)}
 .ff .wmeta{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
 .ff .wstate{margin:calc(-1 * var(--cds-gap-sm)) 0 var(--cds-gap-md);font-size:var(--cds-font-size-caption)}
+.ff .digest .dlist li{display:flex;flex-direction:column;gap:2px}
+.ff .dkind{font-size:var(--cds-font-size-caption);font-weight:var(--cds-font-weight-medium)}
+.ff .fitbadge{display:inline-block;min-width:2.2em;text-align:center;font-variant-numeric:tabular-nums;font-size:var(--cds-font-size-caption);font-weight:var(--cds-font-weight-medium);padding:1px 8px;border-radius:999px;margin-right:6px;border:1px solid currentColor}
+.ff .lensbar{margin-bottom:var(--cds-gap-sm)}
+.ff .lensbtn[aria-pressed="true"]{background:var(--color-fg);color:var(--color-bg);border-color:var(--color-fg)}
 [data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
 [data-dash-source-state=empty]{color:transparent}
 </style>
@@ -122,6 +127,8 @@
         <p data-draw="tdwatch" data-source="briefs">—</p>
         <h3>Where it's headed</h3>
         <p data-draw="tdfore" data-source="projection">—</p>
+        <h3>For you</h3>
+        <p data-draw="tdfit" data-source="fit">—</p>
       </div>
       <div class="dblock">
         <h3>What's driving it</h3>
@@ -181,6 +188,18 @@
 
   <section class="page" id="overview" role="tabpanel">
     <div class="pagehead"><h2 class="ptitle">Overview</h2><p class="note">The big picture: every trend on one map, and where the hottest ones are headed.</p></div>
+    <section class="card digest" id="digest">
+      <div class="cardhead"><h2>Today's digest</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> The three trends that gained the most heat over the last 4 weeks, the one that cooled most, and the newest whisper or new arrival. The number is the change in heat.</p><p><b>What it's for:</b> Your 15-second morning check. Tap any name for the full story.</p><p><b>Watch for:</b> A trend that shows up under Heating up several days running is a real move.</p></div>
+      <ul class="dlist" data-draw="digestlist" data-source="digest"></ul>
+    </section>
+
+    <section class="card" id="foryou">
+      <div class="cardhead"><h2>What this means for you</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Trends ranked by how well they fit your background and plans, scored 0 to 10, with why and a next step. Hot trends with a high fit come first.</p><p><b>What it's for:</b> Turning the trend map into decisions about your career, reselling and channel.</p><p><b>Watch for:</b> A high-fit trend sitting in Get in early or Hot now is your best window.</p></div>
+      <div class="lensbar"><button class="zbtn wide lensbtn" type="button" aria-pressed="false">Highlight my fit on the map</button></div>
+      <ul class="dlist" data-draw="foryoulist" data-source="fit map"></ul>
+    </section>
     <section class="card" id="glance">
       <div class="cardhead"><h2>Everything at a glance</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
       <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble to open why it's trending, who's behind it, and every source. Zoom in and each bubble sprouts small dots, one per signal type fueling it, sized by how many signals and colored by type.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded. When zoomed in, a trend fueled by Funding and Key people is early; one fueled by Social and Courses is late.</p></div>
@@ -195,9 +214,10 @@
       <button class="zbtn" type="button" data-zoom="in" aria-label="Zoom in">+</button>
       <button class="zbtn" type="button" data-zoom="out" aria-label="Zoom out">−</button>
       <button class="zbtn wide" type="button" data-zoom="reset">Reset</button>
+      <button class="zbtn wide lensbtn" type="button" aria-pressed="false">For me</button>
       <span class="label">Pinch or Ctrl+scroll to zoom, drag to move. Zoom in to see what's fueling each trend.</span>
     </div>
-    <div class="chart glance" data-draw="glancechart" data-source="map radar"></div>
+    <div class="chart glance" data-draw="glancechart" data-source="map radar fit"></div>
     <div class="legend fuel">
       <span class="label">Fueled by:</span>
       <span><i class="sw cat" data-cat="Key people"></i>Key people</span>
@@ -588,6 +608,40 @@ dash.calc('watched', {
 });
 </script>
 <script>
+dash.calc('digest', {
+  inputs: ['trend', 'map', 'radar'],
+  title: "Today's digest",
+  description: 'Heating up: the three trends with the biggest heat gain over the last 4 weeks (not fading). Cooling: the biggest heat drop. Whisper: the newest "Early whisper" signal, or else the newest trend first seen in the last 14 days. Each with its newest signal as the reason.',
+  fn: (trend, map, radar) => {
+    const byF = {};
+    trend.forEach((r) => { (byF[r.field] = byF[r.field] || []).push(r); });
+    const latest = (f) => radar.filter((s) => s.field === f).sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    const rows = Object.entries(byF).map(([field, s]) => {
+      const now = s[s.length - 1].heat, then = s.length > 4 ? s[s.length - 5].heat : s[0].heat;
+      const m = map.find((x) => x.field === field) || {};
+      return { field, delta: Math.round((now - then) * 100) / 100, zone: m.zone };
+    });
+    const out = [];
+    rows.filter((r) => r.delta > 0 && r.zone !== 'Fading').sort((a, b) => b.delta - a.delta).slice(0, 3)
+      .forEach((r) => out.push({ kind: 'Heating up', field: r.field, delta: r.delta, reason: (latest(r.field) || {}).signal || '' }));
+    const cool = rows.filter((r) => r.delta < 0).sort((a, b) => a.delta - b.delta)[0];
+    if (cool) out.push({ kind: 'Cooling', field: cool.field, delta: cool.delta, reason: (latest(cool.field) || {}).signal || '' });
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((s) => day(s.date)));
+    const wh = radar.filter((s) => /^Early whisper/i.test(s.signal)).sort((a, b) => (a.date < b.date ? 1 : -1))[0];
+    if (wh) out.push({ kind: 'Whisper', field: wh.field, delta: null, reason: wh.signal.replace(/^Early whisper:\s*/i, '') });
+    else {
+      const first = {};
+      radar.forEach((s) => { if (!first[s.field] || s.date < first[s.field]) first[s.field] = s.date; });
+      const used = out.map((o) => o.field);
+      const fresh = Object.entries(first).filter(([f, d]) => ref - day(d) <= 14 && !used.includes(f)).sort((a, b) => (a[1] < b[1] ? 1 : -1))[0];
+      if (fresh) out.push({ kind: 'New on the radar', field: fresh[0], delta: null, reason: (latest(fresh[0]) || {}).signal || '' });
+    }
+    return out;
+  },
+});
+</script>
+<script>
 dash.calc('heat', {
   inputs: ['radar', 'edges'],
   title: 'Heat by field',
@@ -681,6 +735,14 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     else z.zoom.transform(t, d3.zoomIdentity);
   }));
 })();
+</script>
+<script>
+document.querySelectorAll('.ff .lensbtn').forEach((b) => b.addEventListener('click', () => {
+  const on = dash.params().lens === 'me';
+  dash.setParams({ lens: on ? null : 'me' });
+  document.querySelectorAll('.ff .lensbtn').forEach((x) => x.setAttribute('aria-pressed', String(!on)));
+  if (!on) { const g = document.getElementById('glance'); if (g) g.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
+}));
 </script>
 <script>
 (() => {
@@ -919,7 +981,12 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     const bubs = bubG.selectAll('g').data(pts).join('g').attr('data-trend', (d) => d.field)
       .on('pointerenter pointermove', (ev, d) => showTip(ev, [d.field, `${d.zone} · heat ${d3.format('.2f')(d.heat)}`, `${d.signals} signal${d.signals === 1 ? '' : 's'} · tap for why`]))
       .on('pointerleave', hideTip);
-    bubs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone]).attr('fill-opacity', 0.78).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    const lensOn = dash.params().lens === 'me';
+    const fitOf = (f) => (rows('fit').find((r) => r.field === f) || {}).fit;
+    bubs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone])
+      .attr('fill-opacity', (d) => (lensOn ? (fitOf(d.field) == null ? 0.12 : 0.12 + 0.8 * fitOf(d.field) / 10) : 0.78))
+      .attr('stroke', (d) => (lensOn && fitOf(d.field) >= 7 ? 'var(--color-fg)' : 'var(--color-panel)')).attr('stroke-width', (d) => (lensOn && fitOf(d.field) >= 7 ? 3 : 2));
+    bubs.attr('opacity', (d) => (lensOn && !(fitOf(d.field) >= 4) ? 0.45 : 1));
     const bubLbl = bubs.append('text').attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
       .attr('y', (d) => -d.rr - 4).text((d) => d.field);
     const render = (t) => {
@@ -1235,6 +1302,43 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
       const m3 = document.createElement('div'); m3.className = 'meta'; m3.textContent = d3.utcFormat('%b %-d, %Y %H:%M UTC')(new Date(r.at)); li.appendChild(m3);
       el.appendChild(li);
     });
+  });
+
+  const fitColor = (n) => (n >= 7 ? 'var(--color-ok)' : n >= 4 ? 'var(--color-warn)' : 'var(--color-fg-muted)');
+  dash.draw('digestlist', (el) => {
+    el.replaceChildren();
+    const d = rows('digest');
+    if (dash.data('digest').status === 'ok' && !d.length) { const li = document.createElement('li'); li.className = 'meta'; li.textContent = 'Nothing has moved enough yet. Check back after the next collector run.'; el.appendChild(li); return; }
+    const col = { 'Heating up': 'var(--color-ok)', 'Cooling': 'var(--color-bad)', 'Whisper': 'var(--color-warn)', 'New on the radar': 'var(--color-warn)' };
+    d.forEach((r) => {
+      const li = document.createElement('li');
+      const k = document.createElement('span'); k.className = 'dkind'; k.style.color = col[r.kind] || 'var(--color-fg)';
+      k.textContent = r.delta == null ? r.kind : `${r.kind} · heat ${r.delta > 0 ? '+' : ''}${d3.format('.2f')(r.delta)} in 4 weeks`; li.appendChild(k);
+      const n = document.createElement('span'); n.className = 'wname tlink'; n.dataset.trend = r.field; n.textContent = r.field; li.appendChild(n);
+      const why = document.createElement('span'); why.className = 'meta'; why.textContent = r.reason; li.appendChild(why);
+      el.appendChild(li);
+    });
+  });
+  dash.draw('foryoulist', (el) => {
+    el.replaceChildren();
+    const zoneBoost = { 'Get in early': 1.2, 'Hot now': 1.1, 'Crowded': 0.7, 'Fading': 0.5 };
+    const list = rows('fit').map((f) => ({ ...f, z: (rows('map').find((m) => m.field === f.field) || {}).zone }))
+      .sort((a, b) => b.fit * (zoneBoost[b.z] || 1) - a.fit * (zoneBoost[a.z] || 1)).filter((f) => f.fit >= 4).slice(0, 6);
+    list.forEach((f) => {
+      const li = document.createElement('li');
+      const t = document.createElement('div');
+      const b = document.createElement('span'); b.className = 'fitbadge'; b.style.color = fitColor(f.fit); b.textContent = `${f.fit}/10`; t.appendChild(b);
+      const n = document.createElement('span'); n.className = 'wname tlink'; n.dataset.trend = f.field; n.textContent = f.field; t.appendChild(n);
+      if (f.z) { const z = document.createElement('span'); z.className = 'meta'; z.textContent = ` · ${f.z}`; t.appendChild(z); }
+      li.appendChild(t);
+      const w = document.createElement('div'); w.textContent = f.why_me; li.appendChild(w);
+      const s = document.createElement('div'); s.className = 'meta'; s.textContent = `Next step: ${f.next_step}`; li.appendChild(s);
+      el.appendChild(li);
+    });
+  });
+  dash.draw('tdfit', (el) => {
+    const f = rows('fit').find((r) => r.field === picked());
+    setText(el, f ? `${f.fit}/10 fit. ${f.why_me} Next step: ${f.next_step}` : (picked() ? 'Fit for you arrives with the next collector run.' : '—'));
   });
 
   const topTrends = () => {
