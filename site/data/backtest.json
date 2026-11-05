@@ -1,0 +1,44 @@
+[
+{
+"field": "Web dev (bootcamp era)",
+"job_spike": 2011,
+"actual_flood": 2023,
+"predicted_flood": 2015.4,
+"error_years": -7.6
+},
+{
+"field": "Data science",
+"job_spike": 2012,
+"actual_flood": 2020,
+"predicted_flood": 2022.4,
+"error_years": 2.4
+},
+{
+"field": "Mobile app dev",
+"job_spike": 2010,
+"actual_flood": 2014,
+"predicted_flood": 2020.9,
+"error_years": 6.9
+},
+{
+"field": "Commercial drone pilot",
+"job_spike": 2016,
+"actual_flood": 2019,
+"predicted_flood": 2021.8,
+"error_years": 2.8
+},
+{
+"field": "Blockchain / crypto dev",
+"job_spike": 2018,
+"actual_flood": 2022,
+"predicted_flood": 2022.8,
+"error_years": 0.8
+},
+{
+"field": "Prompt engineer",
+"job_spike": 2023,
+"actual_flood": 2024,
+"predicted_flood": 2024.0,
+"error_years": 0.0
+}
+]

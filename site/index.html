@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flood Forecast</title>
+<meta name="description" content="Spot trends early, see where they're headed, and keep an eye on world risk.">
+<meta name="theme-color" content="#faf9f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Flood Forecast">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<style>
+:root{--color-fg:#1f1e1c;--color-fg-muted:#6b6862;--color-bg:#faf9f6;--color-panel:#ffffff;--color-border-line:#e4e1da;--color-ok:#2f7d4f;--color-warn:#b06d12;--color-bad:#b3362e;
+--font-anthropic-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--font-anthropic-serif:Georgia,"Times New Roman",serif;
+--cds-font-size-caption:12px;--cds-font-size-body:15px;--cds-font-size-heading:17px;--cds-font-size-title:26px;--cds-font-weight-medium:600;
+--cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:12px;--cds-gap-lg:20px;--cds-gap-xl:28px;--cds-pad-xs:4px;--cds-pad-sm:8px;--cds-pad-md:12px;--cds-pad-lg:16px;--cds-pad-xl:24px;--cds-radius:10px;
+--cds-chart-grid:#eceae4;--cds-chart-axis:#bdb8ae;--cds-chart-reference:#9a958c;--cds-chart-muted:#cbc6bc;--cds-chart-status-critical:#d0572e;
+--cds-surface-popover:#ffffff;--cds-border:#dedad2;--cds-shadow-popover:0 6px 20px rgba(0,0,0,.14);--cds-text-secondary:#6b6862;--cds-dur-slow:300ms;--cds-ease-out:cubic-bezier(.2,.8,.2,1)}
+@media (prefers-color-scheme: dark){:root{--color-fg:#ecebe7;--color-fg-muted:#a3a097;--color-bg:#171614;--color-panel:#211f1c;--color-border-line:#36332e;--color-ok:#5cbf85;--color-warn:#e0a24a;--color-bad:#ec6b62;
+--cds-chart-grid:#2c2a26;--cds-chart-axis:#55514a;--cds-chart-reference:#77736a;--cds-chart-muted:#4a4740;--cds-chart-status-critical:#f08156;--cds-surface-popover:#2a2824;--cds-border:#3e3a34;--cds-shadow-popover:0 6px 20px rgba(0,0,0,.5);--cds-text-secondary:#a3a097}}
+html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:var(--font-anthropic-sans);-webkit-text-size-adjust:100%}
+#dash-root{max-width:1100px;margin:0 auto;padding:12px max(16px, env(safe-area-inset-left)) 48px;box-sizing:border-box}
+[data-appifact-content] b,.ff b{font-weight:600}
+.dash-skeleton{color:transparent;background:var(--color-border-line);border-radius:6px}
+</style>
+<link rel="stylesheet" href="styles.css">
+<script src="vendor/d3.v7.9.0.min.js"></script>
+</head>
+<body>
+<div id="dash-root">
+<div class="ff">
+  <header id="top">
+    <h1>Flood Forecast <span class="alpha">Alpha</span></h1>
+    <p class="lede">Spot trends early, see where they're headed, and keep an eye on world risk. Updated every 6 hours.</p>
+    <p class="banner">Early test for Embergate players. Not financial advice. Found a bug or want a trend added? Post in <b>#flood-forecast</b> on the Embergate Discord.</p>
+    <p class="label" data-draw="freshness" data-source="radar">—</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" data-tab="watched" aria-selected="false">Watched</button>
+    <button class="tab" role="tab" data-tab="trends" aria-selected="false">Trends</button>
+    <button class="tab" role="tab" data-tab="risk" aria-selected="false">World risk</button>
+    <button class="tab" role="tab" data-tab="model" aria-selected="false">How it works</button>
+  </nav>
+
+  <div class="searchwrap" id="lookup">
+    <input id="ffsearch" class="search" type="search" autocomplete="off" placeholder="Search trends, people, risks or any word…" aria-label="Search trends, people and risks" role="combobox" aria-controls="ffsugg" aria-expanded="false">
+    <ul id="ffsugg" class="sugg" role="listbox" data-draw="sugg" data-source="map radar briefs people risk riskinfo"></ul>
+  </div>
+  <div class="lookup">
+    <label for="tdpick">Or browse</label>
+    <select id="tdpick" data-draw="tdpick" data-source="map"></select>
+  </div>
+
+  <section class="card detail" id="trenddetail" hidden>
+    <div class="cardhead">
+      <h2 class="dname" data-draw="tdname" data-source="map">—</h2>
+      <div class="dbtns"><button class="starbtn" type="button">☆ Watch</button><button class="closebtn" type="button" aria-label="Close trend details">Close</button></div>
+    </div>
+    <p class="dstats" data-draw="tdstats" data-source="map">—</p>
+    <p class="wstate" data-draw="tdwatchstate" data-source="watchlist">—</p>
+    <div class="dgrid">
+      <div class="dblock">
+        <h3>Why it's trending</h3>
+        <p data-draw="tdwhy" data-source="briefs radar">—</p>
+        <h3>Background</h3>
+        <p data-draw="tdbg" data-source="briefs">—</p>
+        <h3>What to watch</h3>
+        <p data-draw="tdwatch" data-source="briefs">—</p>
+        <h3>Where it's headed</h3>
+        <p data-draw="tdfore" data-source="projection">—</p>
+      </div>
+      <div class="dblock">
+        <h3>What's driving it</h3>
+        <div class="chips" data-draw="tddrivers" data-source="radar"></div>
+        <h3>Key people</h3>
+        <ul class="dlist" data-draw="tdpeople" data-source="radar"></ul>
+      </div>
+    </div>
+    <h3>Every signal, with sources</h3>
+    <ul class="dlist" data-draw="tdsignals" data-source="radar"></ul>
+  </section>
+
+  <section class="card detail" id="persondetail" hidden>
+    <div class="cardhead">
+      <h2 class="dname" data-draw="pdname" data-source="people">—</h2>
+      <button class="closebtn" type="button" aria-label="Close person details">Close</button>
+    </div>
+    <p class="dstats" data-draw="pdrole" data-source="people">—</p>
+    <div class="dgrid">
+      <div class="dblock">
+        <h3>Background</h3>
+        <p data-draw="pdbg" data-source="people">—</p>
+        <h3>Why they matter now</h3>
+        <p data-draw="pdwhy" data-source="people">—</p>
+      </div>
+      <div class="dblock">
+        <h3>Trends they're moving</h3>
+        <div class="chips" data-draw="pdtrends" data-source="radar"></div>
+      </div>
+    </div>
+    <h3>What they've said and done</h3>
+    <ul class="dlist" data-draw="pdsignals" data-source="radar"></ul>
+  </section>
+
+  <section class="card detail" id="riskdetail" hidden>
+    <div class="cardhead">
+      <h2 class="dname" data-draw="rdname" data-source="risk">—</h2>
+      <button class="closebtn" type="button" aria-label="Close risk details">Close</button>
+    </div>
+    <p class="dstats" data-draw="rdlevel" data-source="risk">—</p>
+    <div class="dgrid">
+      <div class="dblock">
+        <h3>Why it's at this level today</h3>
+        <p data-draw="rdwhy" data-source="risk">—</p>
+        <h3>Background</h3>
+        <p data-draw="rdbg" data-source="riskinfo">—</p>
+        <h3>What to watch</h3>
+        <p data-draw="rdwatch" data-source="riskinfo">—</p>
+      </div>
+      <div class="dblock">
+        <h3>What forecasters estimate</h3>
+        <ul class="dlist" data-draw="rdodds" data-source="odds riskinfo"></ul>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="page" id="overview" role="tabpanel">
+    <div class="pagehead"><h2 class="ptitle">Overview</h2><p class="note">The big picture: every trend on one map, and where the hottest ones are headed.</p></div>
+    <section class="card digest" id="digest">
+      <div class="cardhead"><h2>Today's digest</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> The three trends that gained the most heat over the last 4 weeks, the one that cooled most, and the newest whisper or new arrival. The number is the change in heat.</p><p><b>What it's for:</b> Your 15-second morning check. Tap any name for the full story.</p><p><b>Watch for:</b> A trend that shows up under Heating up several days running is a real move.</p></div>
+      <ul class="dlist" data-draw="digestlist" data-source="digest"></ul>
+    </section>
+
+    <section class="card" id="glance">
+      <div class="cardhead"><h2>Everything at a glance</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble to open why it's trending, who's behind it, and every source. Zoom in and each bubble sprouts small dots, one per signal type fueling it, sized by how many signals and colored by type.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded. When zoomed in, a trend fueled by Funding and Key people is early; one fueled by Social and Courses is late.</p></div>
+      <p class="note">Every trend on one map. Left to right is how far along it is, from just emerging to crowded. Higher means hotter right now. Bigger bubbles have more evidence. Tap any bubble to see why it's trending. The sweet spot is the green corner: early and heating up.</p>
+      <div class="legend">
+        <span><i class="sw zone" data-z="Get in early"></i>Get in early</span>
+        <span><i class="sw zone" data-z="Hot now"></i>Hot now</span>
+        <span><i class="sw zone" data-z="Crowded"></i>Crowded</span>
+        <span><i class="sw zone" data-z="Fading"></i>Fading</span>
+      </div>
+      <div class="zoombar">
+      <button class="zbtn" type="button" data-zoom="in" aria-label="Zoom in">+</button>
+      <button class="zbtn" type="button" data-zoom="out" aria-label="Zoom out">−</button>
+      <button class="zbtn wide" type="button" data-zoom="reset">Reset</button>
+      <span class="label">Pinch or Ctrl+scroll to zoom, drag to move. Zoom in to see what's fueling each trend.</span>
+    </div>
+    <div class="chart glance" data-draw="glancechart" data-source="map radar fit"></div>
+    <div class="legend fuel">
+      <span class="label">Fueled by:</span>
+      <span><i class="sw cat" data-cat="Key people"></i>Key people</span>
+      <span><i class="sw cat" data-cat="World events"></i>World events</span>
+      <span><i class="sw cat" data-cat="Politics"></i>Politics</span>
+      <span><i class="sw cat" data-cat="Stocks"></i>Stocks</span>
+      <span><i class="sw cat" data-cat="News"></i>News</span>
+      <span><i class="sw cat" data-cat="Social"></i>Social</span>
+      <span><i class="sw cat" data-cat="Funding"></i>Funding</span>
+      <span><i class="sw cat" data-cat="Jobs"></i>Jobs</span>
+      <span><i class="sw cat" data-cat="Courses"></i>Courses</span>
+    </div>
+    </section>
+
+    <section class="card" id="forecastcard">
+      <div class="cardhead"><h2>Where each trend is headed</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Solid lines are what happened, dashed lines are the forecast, and the shaded band is how unsure it is. The dashed line marks today.</p><p><b>What it's for:</b> Shows which trends are likely to keep rising or start cooling over the coming weeks.</p><p><b>Watch for:</b> A dashed line still climbing with a narrow band is the strongest call. A very wide band means: don't trust it yet.</p></div>
+      <p class="note">Solid lines are what happened. Dashed lines are the forecast, with the shaded band showing how sure it is. Right now it can see <b data-draw="reach" data-source="projection" data-field="horizon_weeks" data-row="0">—</b> weeks ahead from <b data-draw="histw" data-source="projection" data-field="history_weeks" data-row="0">—</b> weeks of history. That reach grows as the collector logs more data and as its calls prove right, up to five years out.</p>
+      <div class="legend" data-draw="fclegend" data-source="projection"></div>
+      <div class="chart" data-draw="fcchart" data-source="projection"></div>
+    </section>
+  </section>
+
+  <section class="page" id="watched" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">Watched</h2><p class="note">Trends you starred: what they were, what they are now, and whether each one is speeding up, cooling off or turning into a problem.</p></div>
+    <section class="card" id="watchlistcard">
+      <div class="cardhead"><h2>Your watchlist</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each card compares a trend 30 days ago, when you started watching, and now. The line is its heat over the last year. Tap a name for the full why.</p><p><b>What it's for:</b> Following the few trends that matter to you without digging through everything else.</p><p><b>Watch for:</b> Trending harder means heat is up or it moved toward hot. Cooling off means heat is dropping. Becoming a problem means it just slid into crowded or fading.</p></div>
+      <div class="wgrid" data-draw="wcards" data-source="watched trend"></div>
+    </section>
+    <section class="card" id="watchhow">
+      <h2>Add or remove a trend</h2>
+      <p class="note">Open any trend and tap ☆ Watch. Your watchlist is saved on this device only, and each card remembers where the trend stood the day you starred it.</p>
+    </section>
+  </section>
+
+  <section class="page" id="trends" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">Trends</h2><p class="note">What's heating up, which signal types are driving it, and the raw signals behind every number.</p></div>
+    <section class="card" id="trendcard">
+      <div class="cardhead"><h2>Heat over time</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each line is one trend's heat over the last year, measured weekly.</p><p><b>What it's for:</b> Shows momentum: is a trend speeding up, flat, or fading?</p><p><b>Watch for:</b> Lines that bend upward sharply are breakouts. A line rolling over after a peak often means crowding.</p></div>
+      <p class="note">Weekly heat per field over the last year. Rising lines are heating up. Fills in more as the collector logs signals.</p>
+      <div class="chart" data-draw="trendchart" data-source="trend"></div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="heatmap">
+        <div class="cardhead"><h2>Heat map: field by signal type</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Rows are trends, columns are signal types. Darker blue is hotter; red means crowding signals.</p><p><b>What it's for:</b> Shows what's driving each trend: money, jobs, social buzz, politics or key people.</p><p><b>Watch for:</b> Trends hot in Funding or Key people but cold in Social are early. Hot in Social and Courses means late.</p></div>
+        <p class="note">Darker blue is hotter. Red cells mean crowding signals.</p>
+        <div class="chart" data-draw="heatmapchart" data-source="grid"></div>
+      </section>
+      <section class="card" id="catbars">
+        <div class="cardhead"><h2>Which signal types are peaking</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each bar is total heat for one signal type across every trend.</p><p><b>What it's for:</b> Shows where the action is right now across the whole world.</p><p><b>Watch for:</b> When Funding and Key people lead, new waves are starting. When Courses and Social lead, a lot of things are peaking.</p></div>
+        <p class="note">Total heat per signal type across every field.</p>
+        <div class="chart" data-draw="catchart" data-source="cats"></div>
+      </section>
+    </div>
+
+    <section class="card" id="heat">
+      <div class="cardhead"><h2>Heat incoming</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Heat now is current momentum. Toward jobs and toward courses show where that heat is flowing next.</p><p><b>What it's for:</b> Separates real opportunity from hype that's about to get crowded.</p><p><b>Watch for:</b> Opportunity building means heat is flowing to jobs faster than to courses: the window is open. Crowding coming means everyone's piling in.</p></div>
+      <p class="note">Heat flowing toward jobs means opportunity is building. Heat flowing toward courses and tutorials means crowding is on the way.</p>
+      <div class="tablebox">
+        <table data-source="heat" data-row-key="field">
+          <thead><tr><th data-field="field">Field</th><th class="r" data-field="heat_now">Heat now</th><th class="r" data-field="jobs_incoming">Toward jobs</th><th class="r" data-field="courses_incoming">Toward courses</th><th data-field="outlook">Outlook</th></tr></thead>
+          <tbody data-draw="htable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="keypeople">
+      <div class="cardhead"><h2>Key people</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each row is one public statement or official move, with the trend it affects and the source.</p><p><b>What it's for:</b> Powerful people often move markets and policy before anything else shifts.</p><p><b>Watch for:</b> Several key people talking about the same trend in a short span usually comes before money moves.</p></div>
+      <p class="note">Public statements and official moves by leaders, central bankers and top CEOs, tied to the trend they affect.</p>
+      <p class="label" data-draw="kpempty" data-source="kpsignals">—</p>
+      <div class="tablebox">
+        <table data-source="kpsignals" data-row-key="signal" class="kptable">
+          <thead><tr><th>Who</th><th data-field="date">Date</th><th data-field="field">Trend</th><th data-field="signal">What they said or did</th><th data-field="source">Source</th></tr></thead>
+          <tbody data-draw="kptable" data-source="people"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="radar">
+      <div class="cardhead"><h2>Early signal radar</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Every raw signal the collector found, newest first, with its type, stage and a link to the source.</p><p><b>What it's for:</b> The evidence behind every number on this dashboard. Tap a source to check it yourself.</p><p><b>Watch for:</b> Entries starting with Early whisper are single sightings; they get confirmed or dropped within 14 days.</p></div>
+      <p class="note">Real-world signals showing which stage each field is in. Green means heating up, amber is building, red means crowding.</p>
+      <div class="tablebox">
+        <table data-source="radar" data-row-key="signal">
+          <thead><tr><th data-field="date">Date</th><th data-field="field">Field</th><th data-field="category">Type</th><th data-field="signal">Signal</th><th data-field="stage">Stage</th><th data-field="source">Source</th></tr></thead>
+          <tbody data-draw="rtable"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <section class="page" id="risk" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">World risk</h2><p class="note">Today's pressure on the world system, and what serious forecasters say the real odds are.</p></div>
+    <section class="card" id="doom">
+      <div class="cardhead"><h2>Doomsday gauge</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> The needle is the average stress across six risk areas on a 0 to 100 scale. Bars show each area and whether it's rising or falling.</p><p><b>What it's for:</b> A calm daily read on how much pressure the world system is under.</p><p><b>Watch for:</b> Watch the arrows more than the levels. One area jumping 10+ points in a day is worth reading about. This is pressure, not odds of the end.</p></div>
+      <p class="note">How stressed the world system is right now, on a 0 to 100 scale per risk, rescored daily from the news. This measures pressure right now. For actual probabilities, see the realistic odds panel below, built only from published forecaster and expert estimates.</p>
+      <div class="doomgrid">
+        <div>
+          <div class="chart gauge" data-draw="gauge" data-source="risk"></div>
+          <p class="label">Official Doomsday Clock: <b data-draw="clocksec" data-source="clock" data-field="seconds_to_midnight" data-row="0">—</b> seconds to midnight, set <span data-draw="clockdate" data-source="clock" data-field="set_on" data-row="0">—</span> by the Bulletin of the Atomic Scientists.</p>
+        </div>
+        <div class="chart" data-draw="riskbars" data-source="risk"></div>
+      </div>
+    </section>
+
+    <section class="card" id="odds">
+      <div class="cardhead"><h2>Realistic odds: what serious forecasters say</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each dot is a published estimate from tested forecasters or expert surveys, on a log scale so tiny and large odds both fit. The table pools them into one consensus.</p><p><b>What it's for:</b> Gives you realistic numbers instead of headlines.</p><p><b>Watch for:</b> Compare the per-year column with everyday risks. Gaps between superforecasters and experts show where people genuinely disagree.</p></div>
+      <p class="note">Published estimates from tested forecasters and expert surveys, on a log scale so tiny and large odds both fit. Tap a dot for the source.</p>
+      <p class="lede">Bottom line: top forecasters put human extinction by 2100 at about <b data-draw="o_es" data-source="odds" data-field="value" data-where="key=ext_super">—</b>%, and domain experts at about <b data-draw="o_ee" data-source="odds" data-field="value" data-where="key=ext_expert">—</b>%. A disaster killing at least 1 in 10 people is far likelier: <b data-draw="o_cs" data-source="odds" data-field="value" data-where="key=cat_super">—</b>% to <b data-draw="o_ce" data-source="odds" data-field="value" data-where="key=cat_expert">—</b>%. Big but survivable disasters, like a war or pandemic killing over a million people in a year, are the real near-term risk. Nobody can check these numbers until it's too late, so treat them as informed judgment, not fact.</p>
+      <div class="chart" data-draw="oddschart" data-source="odds"></div>
+      <h2 style="margin-top:var(--cds-gap-lg)">Triangulated consensus</h2>
+      <p class="note">Each outcome's estimates pooled into one number, plus what that works out to per year. The per-year figure is the one to compare with everyday risks.</p>
+      <div class="tablebox">
+        <table data-source="consensus" data-row-key="outcome">
+          <thead><tr><th data-field="outcome">Outcome</th><th class="r" data-field="estimates">Sources</th><th class="r" data-field="lowest">Lowest</th><th class="r" data-field="highest">Highest</th><th class="r" data-field="consensus">Consensus</th><th class="r" data-field="per_year">Per year</th></tr></thead>
+          <tbody data-draw="ctable"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <section class="page" id="model" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">How it works</h2><p class="note">The career forecasts, the influence network, how accurate the model has been, and the method.</p></div>
+    <section class="tiles" id="tiles">
+      <div class="card tile"><span class="label">Robotics technician floods around</span><span class="num" data-draw="t_robot" data-source="forecasts" data-field="flood_year" data-where="field=Robotics%20technician">—</span></div>
+      <div class="card tile"><span class="label">Agentic AI engineer floods around</span><span class="num" data-draw="t_agent" data-source="forecasts" data-field="flood_year" data-where="field=Agentic%20AI%20engineer">—</span></div>
+      <div class="card tile"><span class="label">Backtest average miss (years)</span><span class="num" data-draw="t_mae" data-source="model" data-field="mae_years">—</span></div>
+      <div class="card tile"><span class="label">Past trends the model learned from</span><span class="num" data-draw="t_cases" data-source="model" data-field="past_cases">—</span></div>
+    </section>
+
+    <section class="card" id="timeline">
+      <div class="cardhead"><h2>Trend timelines and forecasts</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each row is a trend's lifecycle. Filled dots happened; hollow dots are forecasts with a range bar.</p><p><b>What it's for:</b> Shows how past trends played out, so you can judge the forecasts for today's fields.</p><p><b>Watch for:</b> How long past trends took from job spike to flooded. Newer trends move faster.</p></div>
+      <p class="note">Filled dots are stages that already happened. Hollow dots are forecasts, with the bar showing the backtest error range. The dashed line is today.</p>
+      <div class="legend">
+        <span><i class="sw st" data-i="0"></i>Tech emerges</span>
+        <span><i class="sw st" data-i="1"></i>Funding boom</span>
+        <span><i class="sw st" data-i="2"></i>Job spike</span>
+        <span><i class="sw st" data-i="3"></i>Courses boom</span>
+        <span><i class="sw st" data-i="4"></i>Content flood</span>
+        <span><i class="sw st" data-i="5"></i>Flooded</span>
+        <span><i class="sw hollow"></i>Forecast</span>
+      </div>
+      <div class="chart" data-draw="timeline" data-source="stages"></div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="forecasts">
+        <div class="cardhead"><h2>Forecasts for today's fields</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each row is a career field with its forecast flood year, the range, and years left before it gets crowded.</p><p><b>What it's for:</b> Helps decide which skills are worth building now.</p><p><b>Watch for:</b> More years left plus a high barrier to entry is the safest bet.</p></div>
+        <p class="note">Barrier: 1 means anyone with a laptop can enter in weeks, 5 means physical skill, credentials and years.</p>
+        <div class="tablebox">
+          <table data-source="forecasts" data-row-key="field">
+            <thead><tr><th data-field="field">Field</th><th class="r" data-field="barrier">Barrier</th><th class="r" data-field="flood_year">Floods</th><th class="r" data-field="low">Earliest</th><th class="r" data-field="high">Latest</th><th class="r" data-field="years_left">Years left</th></tr></thead>
+            <tbody data-draw="ftable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="backtest">
+        <div class="cardhead"><h2>Backtest: would it have called the past?</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each bar is how many years early or late the model would have been on a past trend it hadn't seen.</p><p><b>What it's for:</b> An honest check on how much to trust the forecasts.</p><p><b>Watch for:</b> Short bars mean good calls. Long red bars show where the model has missed before.</p></div>
+        <p class="note">Each past trend was hidden from the model, then predicted. Bars show how many years early or late the guess was.</p>
+        <div class="chart" data-draw="backtest" data-source="backtest"></div>
+      </section>
+    </div>
+
+    <section class="card" id="network">
+      <div class="cardhead"><h2>Influence network</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Arrows show which signal types push others. Thicker means stronger; tap an arrow for its lead time.</p><p><b>What it's for:</b> Explains why a spike in one place predicts movement somewhere else later.</p><p><b>Watch for:</b> Strengths change as the model relearns daily. Arrows getting thicker are patterns it's confirming.</p></div>
+      <p class="note">How each kind of signal pushes the others, including what key people say and do. Thicker arrows push harder. Tap an arrow for its lead time. Strengths start as estimates and get relearned as the hourly collector logs signals.</p>
+      <div class="chart net" data-draw="network" data-source="edges"></div>
+    </section>
+
+    <section class="card" id="accuracy">
+      <div class="cardhead"><h2>Predictor accuracy over time</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> The share of the model's calls that came true, checked weekly.</p><p><b>What it's for:</b> Shows whether the predictor is actually getting smarter.</p><p><b>Watch for:</b> A rising line means it's learning. If it drops for a few weeks in a row, take the forecasts with more salt.</p></div>
+      <p class="note">Share of calls that came true. It starts from the backtest (past trends called within 3 years). Each week the collector checks calls made 30 or more days earlier against what actually happened, so this line should climb as the model learns.</p>
+      <div class="chart" data-draw="accchart" data-source="accuracy"></div>
+    </section>
+
+    <section class="card method" id="method">
+      <h2>How the algorithm works</h2>
+      <p class="method-lede">Any trend, in tech, money, culture, health or anything else, moves through the same six stages: it emerges, money floods in, it goes mainstream, how-tos and copycats boom, content floods social media, then it is crowded. A collector runs every 6 hours, watching key people in world power, money, AI and industry, plus stocks, politics, world events, news and social buzz, across sectors from AI and jobs to farms, oil, electricity, water and infrastructure. The model learns how long each stage lasts and forecasts what is next. Hands-on fields buy about <b data-draw="barrier" data-source="model" data-field="per_barrier_point">—</b> extra years per barrier point, and every year later a trend starts shortens its runway by <b data-draw="speed" data-source="model" data-field="per_year_later">—</b> years.</p>
+      <ol>
+        <li>Each trend gets a year for every stage it has reached.</li>
+        <li>The model learns the runway (years from job spike to flooded) from two things: when the trend started, and how hard the field is to enter.</li>
+        <li>Fields that still are not crowded, like wind turbine and EV techs, count as "at least this long", so hands-on work isn't underestimated.</li>
+        <li>Every past trend is hidden one at a time and predicted, which gives the honest error range.</li>
+      </ol>
+      <p class="label">Stage years for past trends are estimates from well-documented history, not measured job-posting series. Treat forecasts as ranges, not dates. Surprises like a new law, a crash or a breakthrough can break any model.</p>
+    </section>
+  </section>
+</div>
+</div>
+<script src="runtime.js"></script>
+<script src="calcs.js"></script>
+<script src="ui.js"></script>
+<script src="charts.js"></script>
+<script src="alpha.js"></script>
+</body>
+</html>

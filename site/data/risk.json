@@ -1,0 +1,50 @@
+[
+{
+"category": "Nuclear and war",
+"level": 60,
+"trend": "up",
+"basis": "Starting estimate; Doomsday Clock cites nuclear risk as a top driver",
+"source": "PBS NewsHour",
+"url": "https://www.pbs.org/newshour/world/doomsday-clock-ticks-closer-to-midnight-amid-threats-from-ai-climate-change-and-nuclear-war"
+},
+{
+"category": "Climate and disasters",
+"level": 50,
+"trend": "up",
+"basis": "Starting estimate; Doomsday Clock cites climate change",
+"source": "PBS NewsHour",
+"url": "https://www.pbs.org/newshour/world/doomsday-clock-ticks-closer-to-midnight-amid-threats-from-ai-climate-change-and-nuclear-war"
+},
+{
+"category": "AI risk",
+"level": 45,
+"trend": "up",
+"basis": "Starting estimate; Doomsday Clock cites AI as a growing threat",
+"source": "PBS NewsHour",
+"url": "https://www.pbs.org/newshour/world/doomsday-clock-ticks-closer-to-midnight-amid-threats-from-ai-climate-change-and-nuclear-war"
+},
+{
+"category": "Pandemics",
+"level": 25,
+"trend": "flat",
+"basis": "Starting estimate; rescored by the collector",
+"source": "Starting estimate",
+"url": ""
+},
+{
+"category": "Financial crash",
+"level": 35,
+"trend": "flat",
+"basis": "Starting estimate; rescored by the collector",
+"source": "Starting estimate",
+"url": ""
+},
+{
+"category": "Grid, water and food",
+"level": 35,
+"trend": "flat",
+"basis": "Starting estimate; rescored by the collector",
+"source": "Starting estimate",
+"url": ""
+}
+]

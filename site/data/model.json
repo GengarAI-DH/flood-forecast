@@ -1,0 +1,10 @@
+[
+{
+"intercept": 1.65,
+"per_year_later": -0.38,
+"per_barrier_point": 3.0,
+"mae_years": 3.42,
+"past_cases": 6,
+"still_short_cases": 2
+}
+]

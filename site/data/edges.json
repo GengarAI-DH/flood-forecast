@@ -1,0 +1,146 @@
+[
+{
+"edge": "World events \u2192 Stocks",
+"from": "World events",
+"to": "Stocks",
+"lead_months": 0.1,
+"strength": 0.7,
+"why": "Shocks move markets within days",
+"basis": "Starting estimate"
+},
+{
+"edge": "World events \u2192 Politics",
+"from": "World events",
+"to": "Politics",
+"lead_months": 3,
+"strength": 0.5,
+"why": "Crises push new laws and spending",
+"basis": "Starting estimate"
+},
+{
+"edge": "Politics \u2192 Funding",
+"from": "Politics",
+"to": "Funding",
+"lead_months": 6,
+"strength": 0.6,
+"why": "Laws and subsidies pull in investment",
+"basis": "Starting estimate"
+},
+{
+"edge": "Politics \u2192 Jobs",
+"from": "Politics",
+"to": "Jobs",
+"lead_months": 12,
+"strength": 0.4,
+"why": "Mandates and programs create roles",
+"basis": "Starting estimate"
+},
+{
+"edge": "News \u2192 Social",
+"from": "News",
+"to": "Social",
+"lead_months": 0.5,
+"strength": 0.7,
+"why": "Coverage sparks online buzz",
+"basis": "Starting estimate"
+},
+{
+"edge": "News \u2192 Stocks",
+"from": "News",
+"to": "Stocks",
+"lead_months": 0.1,
+"strength": 0.5,
+"why": "Headlines move sector prices",
+"basis": "Starting estimate"
+},
+{
+"edge": "Stocks \u2192 Funding",
+"from": "Stocks",
+"to": "Funding",
+"lead_months": 3,
+"strength": 0.6,
+"why": "Hot sectors attract private capital",
+"basis": "Starting estimate"
+},
+{
+"edge": "Funding \u2192 Jobs",
+"from": "Funding",
+"to": "Jobs",
+"lead_months": 18,
+"strength": 0.7,
+"why": "Backtest: funding boom leads job spike by about 1.5 years",
+"basis": "Starting estimate"
+},
+{
+"edge": "Jobs \u2192 News",
+"from": "Jobs",
+"to": "News",
+"lead_months": 3,
+"strength": 0.4,
+"why": "Hiring surges get reported",
+"basis": "Starting estimate"
+},
+{
+"edge": "Jobs \u2192 Courses",
+"from": "Jobs",
+"to": "Courses",
+"lead_months": 12,
+"strength": 0.6,
+"why": "Demand spawns bootcamps and programs",
+"basis": "Starting estimate"
+},
+{
+"edge": "Social \u2192 Courses",
+"from": "Social",
+"to": "Courses",
+"lead_months": 3,
+"strength": 0.7,
+"why": "'How to become a ___' buzz drives enrollment",
+"basis": "Starting estimate"
+},
+{
+"edge": "Courses \u2192 Social",
+"from": "Courses",
+"to": "Social",
+"lead_months": 3,
+"strength": 0.5,
+"why": "Tutorial flood feeds more buzz, then crowding",
+"basis": "Starting estimate"
+},
+{
+"edge": "Key people \u2192 Stocks",
+"from": "Key people",
+"to": "Stocks",
+"lead_months": 0.1,
+"strength": 0.6,
+"why": "Statements from leaders, central bankers and CEOs move markets within days",
+"basis": "Starting estimate"
+},
+{
+"edge": "Key people \u2192 Politics",
+"from": "Key people",
+"to": "Politics",
+"lead_months": 2,
+"strength": 0.5,
+"why": "Leaders' agendas become laws and programs",
+"basis": "Starting estimate"
+},
+{
+"edge": "Key people \u2192 Funding",
+"from": "Key people",
+"to": "Funding",
+"lead_months": 3,
+"strength": 0.5,
+"why": "Big names backing a sector pull money in",
+"basis": "Starting estimate"
+},
+{
+"edge": "Key people \u2192 News",
+"from": "Key people",
+"to": "News",
+"lead_months": 0.1,
+"strength": 0.6,
+"why": "What powerful people say becomes headlines",
+"basis": "Starting estimate"
+}
+]

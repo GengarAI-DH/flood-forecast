@@ -211,7 +211,7 @@
     const bandSel = view.append('g').selectAll('rect').data(bands).join('rect').style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.07).attr('y', m.t).attr('height', H - m.b - m.t);
     const zero = view.append('line').attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
     const linkG = view.append('g'), satG = view.append('g'), bubG = view.append('g');
-    const stageLbl = W < 520 ? ['Emerging', 'Money', 'Mainstream', 'How-tos', 'Social', 'Crowded'] : ['Emerging', 'Money pours in', 'Goes mainstream', 'How-tos boom', 'Social flood', 'Crowded'];
+    const stageLbl = W < 420 ? ['New', 'Money', 'Main', 'How-to', 'Social', 'Crowd'] : W < 620 ? ['Emerging', 'Money', 'Mainstream', 'How-tos', 'Social', 'Crowded'] : ['Emerging', 'Money pours in', 'Goes mainstream', 'How-tos boom', 'Social flood', 'Crowded'];
     const stageText = svg.append('g').selectAll('text').data(stageLbl).join('text').attr('y', H - m.b + 16).attr('text-anchor', 'middle')
       .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((s) => s);
     svg.append('text').attr('x', W / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Lifecycle stage →');
