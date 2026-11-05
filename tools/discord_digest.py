@@ -24,6 +24,13 @@ def heat_at(signals, day):
 
 
 def main():
+    upd = ROOT / "site/data/updated.json"
+    if upd.exists():
+        at = dt.datetime.fromisoformat(json.loads(upd.read_text())["at"].replace("Z", "+00:00"))
+        age_h = (dt.datetime.now(dt.timezone.utc) - at).total_seconds() / 3600
+        if age_h > 36:
+            print(f"Data is {age_h:.0f} hours old, so no digest today (avoids reposting stale trends).")
+            return
     radar = json.loads((ROOT / "site/data/radar.json").read_text())
     ref = max(dt.date.fromisoformat(s["date"]) for s in radar)
     then = ref - dt.timedelta(days=28)
