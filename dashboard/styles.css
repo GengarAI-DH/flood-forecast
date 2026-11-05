@@ -98,3 +98,5 @@
 .ff .sgh{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .ff .sg.ask .sgn{display:none}
 .ff .sugg:not(.open){display:none}
+
+.ff .sparkcap { margin-top: 2px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }

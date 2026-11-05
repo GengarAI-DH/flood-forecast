@@ -598,6 +598,10 @@
         const ext = d3.extent(s, (r) => r.heat); if (ext[0] === ext[1]) { ext[0] -= 0.5; ext[1] += 0.5; }
         const yy = d3.scaleLinear(ext, [sh - 3, 3]);
         sv.append('path').attr('d', d3.line().x((r, i) => xx(i)).y((r) => yy(r.heat))(s)).attr('fill', 'none').attr('stroke', STATUS[w.status] === 'var(--color-fg-muted)' ? dash.colors[0] : STATUS[w.status]).attr('stroke-width', 2).attr('vector-effect', 'non-scaling-stroke');
+        const cap = document.createElement('div'); cap.className = 'wmeta sparkcap';
+        const mo = d3.utcFormat('%b %Y');
+        cap.textContent = `Heat score over the past 12 months, ${mo(new Date(s[0].week))} to now. Higher means hotter.`;
+        c.appendChild(cap);
       }
       const lt = document.createElement('div'); lt.className = 'wmeta';
       lt.textContent = w.new_signals ? `${w.new_signals} new signal${w.new_signals === 1 ? '' : 's'} since you started watching. Latest: ${w.latest}` : 'No new signals since you started watching.';

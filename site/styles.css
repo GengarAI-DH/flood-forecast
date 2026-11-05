@@ -104,3 +104,5 @@
 .ff .dbtns{display:flex;gap:6px;flex:0 0 auto}
 .ff .starbtn{font:inherit;font-size:var(--cds-font-size-caption);padding:6px 12px;border-radius:999px;border:1px solid var(--color-border-line);background:var(--color-bg);color:var(--color-fg);cursor:pointer}
 .ff .starbtn[aria-pressed="true"]{background:var(--color-ok);border-color:var(--color-ok);color:#fff}
+
+.ff .sparkcap { margin-top: 2px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
