@@ -256,12 +256,17 @@
       pts.forEach((d) => { d.px = xs(d.sx); d.py = ys(d.heat); });
       bubs.attr('transform', (d) => `translate(${d.px},${d.py})`);
       const full = W < 520 && k < 1.5;
-      bubLbl.text((d) => (full && d.field.length > 14 ? d.field.slice(0, 13) + '…' : d.field)).attr('display', null);
+      bubLbl.text((d) => (full && d.field.length > 22 ? d.field.slice(0, 21) + '…' : d.field)).attr('display', null).attr('x', 0);
       const kept = [];
       pts.slice().sort((a, b) => b.signals - a.signals || b.heat - a.heat).forEach((d) => {
         const node = bubLbl.filter((x) => x === d).node(); if (!node) return;
         const w = node.getComputedTextLength(), h = 14;
-        const box = { x: d.px - w / 2 - 2, y: d.py - d.rr - 4 - h, w: w + 4, h };
+        // Slide the label sideways so it never runs off the edge of the map.
+        let left = d.px - w / 2;
+        if (left < m.l + 2) left = m.l + 2;
+        if (left + w > W - m.r - 2) left = W - m.r - 2 - w;
+        node.setAttribute('x', left + w / 2 - d.px);
+        const box = { x: left - 2, y: d.py - d.rr - 4 - h, w: w + 4, h };
         const inView = d.px > m.l - 20 && d.px < W - m.r + 20 && d.py > m.t - 10 && d.py < H - m.b + 10;
         const hit = kept.some((k) => box.x < k.x + k.w && box.x + box.w > k.x && box.y < k.y + k.h && box.y + box.h > k.y);
         if (hit || !inView) node.setAttribute('display', 'none'); else kept.push(box);
