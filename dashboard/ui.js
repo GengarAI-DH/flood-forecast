@@ -27,11 +27,30 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
 (() => {
   const card = document.getElementById('trenddetail');
   const cards = { trend: card, person: document.getElementById('persondetail'), risk: document.getElementById('riskdetail') };
-  const open = (kind, name) => {
-    if (!name || !cards[kind]) return;
+  // Back remembers where you were: hopping between detail cards steps back one card at a time,
+  // and the last Back returns you to the exact spot on the page you tapped from.
+  const trail = [];
+  let origin = null;
+  const current = () => { const p = dash.params(); return p.trend ? ['trend', p.trend] : p.person ? ['person', p.person] : p.risk ? ['risk', p.risk] : null; };
+  const reveal = (kind, name) => {
     Object.entries(cards).forEach(([k, c]) => { if (c) c.hidden = k !== kind; });
     dash.setParams({ trend: kind === 'trend' ? name : null, person: kind === 'person' ? name : null, risk: kind === 'risk' ? name : null });
     cards[kind].scrollIntoView({ block: 'start', behavior: 'smooth' });
+  };
+  const open = (kind, name) => {
+    if (!name || !cards[kind]) return;
+    const cur = current();
+    if (cur && cur[0] === kind && cur[1] === name) { cards[kind].scrollIntoView({ block: 'start', behavior: 'smooth' }); return; }
+    if (cur) trail.push(cur); else origin = window.scrollY;
+    reveal(kind, name);
+  };
+  const back = () => {
+    const prev = trail.pop();
+    if (prev) { reveal(prev[0], prev[1]); return; }
+    Object.values(cards).forEach((c) => { if (c) c.hidden = true; });
+    dash.setParams({ trend: null, person: null, risk: null });
+    const y = origin; origin = null;
+    if (y != null) requestAnimationFrame(() => window.scrollTo({ top: y, behavior: 'instant' }));
   };
   window.ffPick = (name) => open('trend', name);
   window.ffOpen = open;
@@ -43,10 +62,8 @@ document.querySelectorAll('.ff .infobtn').forEach((b) => {
     else if (el.hasAttribute('data-risk')) open('risk', el.getAttribute('data-risk'));
     else open('trend', el.getAttribute('data-trend'));
   });
-  document.querySelectorAll('.ff .closebtn').forEach((b) => b.addEventListener('click', () => {
-    Object.values(cards).forEach((c) => { if (c) c.hidden = true; });
-    dash.setParams({ trend: null, person: null, risk: null });
-  }));
+  document.querySelectorAll('.ff .closebtn').forEach((b) => b.addEventListener('click', back));
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && current()) back(); });
 })();
 
 (() => {
