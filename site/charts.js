@@ -194,7 +194,7 @@
     svg.append('clipPath').attr('id', clipId).append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b);
     const x = d3.scaleLinear([0.5, 6.5], [m.l, W - m.r]);
     const hmax = Math.max(1, d3.max(data, (d) => d.heat)), hmin = Math.min(-0.5, d3.min(data, (d) => d.heat));
-    const y = d3.scaleLinear([hmin, hmax * 1.15], [H - m.b, m.t]);
+    const y = d3.scaleLinear([hmin - hmax * 0.22, hmax * 1.3], [H - m.b, m.t]);
     const r = d3.scaleSqrt([1, Math.max(2, d3.max(data, (d) => d.signals))], [7, 20]);
     const pts = data.map((d) => ({ ...d, rr: r(d.signals) }));
     d3.group(pts, (d) => d.stage).forEach((g) => {
@@ -210,12 +210,17 @@
     const bands = [[0.5, 2.5, 'Get in early'], [2.5, 4.5, 'Hot now'], [4.5, 6.5, 'Crowded']];
     const bandSel = view.append('g').selectAll('rect').data(bands).join('rect').style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.07).attr('y', m.t).attr('height', H - m.b - m.t);
     const zero = view.append('line').attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    // Corner guides: what each part of the map means.
+    const cg = view.append('g').attr('class', 'cornerguide').attr('fill', 'var(--color-fg-muted)').attr('fill-opacity', 0.75).style('font-size', 'var(--cds-font-size-caption)').attr('pointer-events', 'none');
+    [['Early + hot ★', m.l + 6, m.t + 14, 'start'], ['Late + hot', W - m.r - 6, m.t + 14, 'end'],
+     ['Early, still quiet', m.l + 6, H - m.b - 8, 'start'], ['Late + cooling', W - m.r - 6, H - m.b - 8, 'end']]
+      .forEach(([t, cx, cy, a]) => cg.append('text').attr('x', cx).attr('y', cy).attr('text-anchor', a).text(t));
     const linkG = view.append('g'), satG = view.append('g'), bubG = view.append('g');
     const stageLbl = W < 420 ? ['New', 'Money', 'Main', 'How-to', 'Social', 'Crowd'] : W < 620 ? ['Emerging', 'Money', 'Mainstream', 'How-tos', 'Social', 'Crowded'] : ['Emerging', 'Money pours in', 'Goes mainstream', 'How-tos boom', 'Social flood', 'Crowded'];
     const stageText = svg.append('g').selectAll('text').data(stageLbl).join('text').attr('y', H - m.b + 16).attr('text-anchor', 'middle')
       .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((s) => s);
     svg.append('text').attr('x', W / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Lifecycle stage →');
-    svg.append('text').attr('x', m.l + 4).attr('y', m.t + 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('↑ Hotter');
+
     const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
     const showTip = (ev, lines) => {
       const [px, py] = d3.pointer(ev, el);
