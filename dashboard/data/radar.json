@@ -1,0 +1,92 @@
+[
+{
+"date": "2026-07-22",
+"field": "Humanoid robot field service",
+"signal": "Humanoid robotics VC hit $8.7B for 2026 by late July, an all-time high",
+"stage": "Funding boom",
+"heat": 3,
+"source": "Dealroom",
+"url": "https://dealroom.co/charts/humanoid-robotics.html",
+"category": "Funding"
+},
+{
+"date": "2026-06-09",
+"field": "Humanoid robot field service",
+"signal": "Q1 2026 humanoid funding $1.32B, up about 265% year over year",
+"stage": "Funding boom",
+"heat": 3,
+"source": "New Market Pitch",
+"url": "https://newmarketpitch.com/blogs/news/humanoid-robotics-funding-deals",
+"category": "Funding"
+},
+{
+"date": "2026-10-23",
+"field": "Robotics technician",
+"signal": "Army graduated first class of new 390A Robotics Technician Integrator role",
+"stage": "Courses boom",
+"heat": 2,
+"source": "A3 / automate.org",
+"url": "https://www.automate.org/business-of-automation/episodes/closing-the-robotics-skills-gap-lessons-from-the-army-emory-and-ford",
+"category": "Courses"
+},
+{
+"date": "2026-03-27",
+"field": "Robotics technician",
+"signal": "Robotics technician openings up 113% from 2022 to 2026, fastest of tracked trades",
+"stage": "Job spike",
+"heat": 3,
+"source": "Randstad via TradeColleges",
+"url": "https://tradecolleges.org/blog/career-guidance/robotics-technician-career-path",
+"category": "Jobs"
+},
+{
+"date": "2026-07-12",
+"field": "Data center critical-facilities tech",
+"signal": "OEM data center technician training institutes scheduled to open in 2027",
+"stage": "Courses boom",
+"heat": 2,
+"source": "ContractorPlus",
+"url": "https://contractorplus.app/blog/hvac-technician-shortage-collides-with-data-center-boom",
+"category": "Courses"
+},
+{
+"date": "2026-02-01",
+"field": "Data center critical-facilities tech",
+"signal": "About 340,000 data center positions projected unfilled by end of 2026",
+"stage": "Job spike",
+"heat": 3,
+"source": "Introl",
+"url": "https://introl.com/vi/blog/data-center-workforce-shortage-340000-unfilled-positions-2026",
+"category": "Jobs"
+},
+{
+"date": "2026-08-15",
+"field": "Agentic AI engineer",
+"signal": "US postings naming agentic systems went from 151 (2024) to 16,500+ (2025)",
+"stage": "Job spike",
+"heat": 3,
+"source": "Stanford AI Index via TechWithSanjay",
+"url": "https://www.techwithsanjay.in/2026/08/agentic-ai-engineer-career-guide-2026.html",
+"category": "Jobs"
+},
+{
+"date": "2026-06-01",
+"field": "Cybersecurity (entry level)",
+"signal": "About 514K actual US cyber postings vs 4.8M headline gap; entry level competitive",
+"stage": "Flooded",
+"heat": 1,
+"source": "StationX",
+"url": "https://app.stationx.net/articles/cybersecurity-skills-gap-statistics",
+"category": "Jobs"
+},
+{
+"date": "2026-07-30",
+"field": "Prompt engineer",
+"signal": "Standalone prompt engineer postings down roughly 40% from 2023 peak",
+"stage": "Flooded",
+"heat": 1,
+"source": "Recrew",
+"url": "https://www.recrew.ai/blog/reality-of-recruiting-prompt-engineers",
+"category": "Jobs"
+}
+]

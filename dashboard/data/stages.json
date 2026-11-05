@@ -1,0 +1,582 @@
+[
+{
+"field": "Web dev (bootcamp era)",
+"group": "Past trend",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 1995,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Web dev (bootcamp era)",
+"group": "Past trend",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2005,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Web dev (bootcamp era)",
+"group": "Past trend",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2011,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Web dev (bootcamp era)",
+"group": "Past trend",
+"stage": 4,
+"stage_name": "Courses boom",
+"year": 2013,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Web dev (bootcamp era)",
+"group": "Past trend",
+"stage": 5,
+"stage_name": "Content flood",
+"year": 2016,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Web dev (bootcamp era)",
+"group": "Past trend",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data science",
+"group": "Past trend",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2006,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data science",
+"group": "Past trend",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2010,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data science",
+"group": "Past trend",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2012,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data science",
+"group": "Past trend",
+"stage": 4,
+"stage_name": "Courses boom",
+"year": 2014,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data science",
+"group": "Past trend",
+"stage": 5,
+"stage_name": "Content flood",
+"year": 2017,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data science",
+"group": "Past trend",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2020,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Mobile app dev",
+"group": "Past trend",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2007,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Mobile app dev",
+"group": "Past trend",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2009,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Mobile app dev",
+"group": "Past trend",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2010,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Mobile app dev",
+"group": "Past trend",
+"stage": 4,
+"stage_name": "Courses boom",
+"year": 2011,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Mobile app dev",
+"group": "Past trend",
+"stage": 5,
+"stage_name": "Content flood",
+"year": 2012,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Mobile app dev",
+"group": "Past trend",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2014,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Commercial drone pilot",
+"group": "Past trend",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2010,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Commercial drone pilot",
+"group": "Past trend",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2014,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Commercial drone pilot",
+"group": "Past trend",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2016,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Commercial drone pilot",
+"group": "Past trend",
+"stage": 4,
+"stage_name": "Courses boom",
+"year": 2016,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Commercial drone pilot",
+"group": "Past trend",
+"stage": 5,
+"stage_name": "Content flood",
+"year": 2017,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Commercial drone pilot",
+"group": "Past trend",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2019,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Blockchain / crypto dev",
+"group": "Past trend",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2008,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Blockchain / crypto dev",
+"group": "Past trend",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2017,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Blockchain / crypto dev",
+"group": "Past trend",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2018,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Blockchain / crypto dev",
+"group": "Past trend",
+"stage": 4,
+"stage_name": "Courses boom",
+"year": 2018,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Blockchain / crypto dev",
+"group": "Past trend",
+"stage": 5,
+"stage_name": "Content flood",
+"year": 2021,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Blockchain / crypto dev",
+"group": "Past trend",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2022,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Prompt engineer",
+"group": "Past trend",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2020,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Prompt engineer",
+"group": "Past trend",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Prompt engineer",
+"group": "Past trend",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Prompt engineer",
+"group": "Past trend",
+"stage": 4,
+"stage_name": "Courses boom",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Prompt engineer",
+"group": "Past trend",
+"stage": 5,
+"stage_name": "Content flood",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Prompt engineer",
+"group": "Past trend",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2024,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Wind turbine technician",
+"group": "Still short",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2010,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "EV service technician",
+"group": "Still short",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2020,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Agentic AI engineer",
+"group": "Forecast",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Agentic AI engineer",
+"group": "Forecast",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2024,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Agentic AI engineer",
+"group": "Forecast",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2025,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Agentic AI engineer",
+"group": "Forecast",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2026.9,
+"kind": "predicted",
+"low": 2023.5,
+"high": 2030.3
+},
+{
+"field": "Cybersecurity (entry level)",
+"group": "Forecast",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2000,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Cybersecurity (entry level)",
+"group": "Forecast",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2013,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Cybersecurity (entry level)",
+"group": "Forecast",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2015,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Cybersecurity (entry level)",
+"group": "Forecast",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2023.7,
+"kind": "predicted",
+"low": 2020.3,
+"high": 2027.1
+},
+{
+"field": "Robotics technician",
+"group": "Forecast",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2015,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Robotics technician",
+"group": "Forecast",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2021,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Robotics technician",
+"group": "Forecast",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2024,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Robotics technician",
+"group": "Forecast",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2032.3,
+"kind": "predicted",
+"low": 2028.8,
+"high": 2035.7
+},
+{
+"field": "Data center critical-facilities tech",
+"group": "Forecast",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2018,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data center critical-facilities tech",
+"group": "Forecast",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2023,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data center critical-facilities tech",
+"group": "Forecast",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2024,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Data center critical-facilities tech",
+"group": "Forecast",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2032.3,
+"kind": "predicted",
+"low": 2028.8,
+"high": 2035.7
+},
+{
+"field": "Humanoid robot field service",
+"group": "Forecast",
+"stage": 1,
+"stage_name": "Tech emerges",
+"year": 2022,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Humanoid robot field service",
+"group": "Forecast",
+"stage": 2,
+"stage_name": "Funding boom",
+"year": 2025,
+"kind": "actual",
+"low": null,
+"high": null
+},
+{
+"field": "Humanoid robot field service",
+"group": "Forecast",
+"stage": 3,
+"stage_name": "Job spike",
+"year": 2026.5,
+"kind": "predicted",
+"low": null,
+"high": null
+},
+{
+"field": "Humanoid robot field service",
+"group": "Forecast",
+"stage": 6,
+"stage_name": "Flooded",
+"year": 2033.8,
+"kind": "predicted",
+"low": 2030.4,
+"high": 2037.2
+}
+]

@@ -1,0 +1,973 @@
+<meta name="dash-one-writer">
+<style>
+.ff{font-family:var(--font-anthropic-sans);color:var(--color-fg);display:flex;flex-direction:column;gap:var(--cds-gap-md)}
+.ff h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+.ff .lede{margin:var(--cds-gap-xs) 0 0;color:var(--color-fg-muted);font-size:var(--cds-font-size-body);max-width:48rem}
+.ff .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,11rem),1fr));gap:var(--cds-gap-md)}
+.ff .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);min-width:0}
+.ff .tile .num{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);font-variant-numeric:tabular-nums;display:block;margin-top:var(--cds-gap-xs)}
+.ff .label{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.ff h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0}
+.ff .note{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin:var(--cds-gap-xs) 0 var(--cds-gap-md)}
+.ff .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:var(--cds-gap-md)}
+.ff .chart{position:relative;min-height:220px}
+.ff .net{min-height:300px}
+.ff .glance{min-height:340px}
+.ff .doomgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:var(--cds-gap-lg);align-items:center}
+.ff .gauge{min-height:160px}
+.ff .chart svg{display:block}
+.ff .legend{display:flex;flex-wrap:wrap;gap:var(--cds-gap-sm) var(--cds-gap-md);font-size:var(--cds-font-size-caption);color:var(--color-fg-muted);margin-bottom:var(--cds-gap-sm)}
+.ff .legend span{display:inline-flex;align-items:center;gap:6px}
+.ff .sw{width:10px;height:10px;border-radius:50%;display:inline-block}
+.ff .sw.hollow{background:transparent!important;border:2px solid var(--color-fg-muted)}
+.ff .tip{position:absolute;pointer-events:none;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);max-width:16rem;z-index:2}
+.ff .tip .t{color:var(--cds-text-secondary)}
+.ff .tablebox{max-height:24rem;overflow:auto}
+.ff table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.ff th{text-align:left;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);position:sticky;top:0;background:var(--color-panel);padding:6px 8px;border-bottom:1px solid var(--color-border-line)}
+.ff td{padding:6px 8px;border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.ff td.r,.ff th.r{text-align:right}
+.ff .hot{color:var(--color-ok)} .ff .cold{color:var(--color-bad)} .ff .warm{color:var(--color-warn)}
+.ff .method p{margin:0 0 var(--cds-gap-sm);font-size:var(--cds-font-size-body)}
+.ff .method ol{margin:0 0 var(--cds-gap-sm);padding-left:1.2rem;font-size:var(--cds-font-size-body)}
+.ff a{color:inherit}
+.ff .tabs{position:sticky;top:0;z-index:5;display:flex;gap:var(--cds-gap-xs);overflow-x:auto;scrollbar-width:none;padding:var(--cds-pad-xs) 0;background:var(--color-bg);border-bottom:1px solid var(--color-border-line)}
+.ff .tabs::-webkit-scrollbar{display:none}
+.ff .tab{flex:0 0 auto;font:inherit;font-size:var(--cds-font-size-body);padding:8px 16px;border-radius:999px;border:1px solid transparent;background:transparent;color:var(--color-fg-muted);cursor:pointer}
+.ff .tab:hover{color:var(--color-fg)}
+.ff .tab[aria-selected="true"]{background:var(--color-panel);border-color:var(--color-border-line);color:var(--color-fg);font-weight:var(--cds-font-weight-medium)}
+.ff .page{display:flex;flex-direction:column;gap:var(--cds-gap-md)}
+.ff .page[hidden]{display:none}
+.ff .pagehead .ptitle{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+.ff .pagehead .note{margin:var(--cds-gap-xs) 0 0}
+.ff .method-lede{margin:0 0 var(--cds-gap-sm);font-size:var(--cds-font-size-body);color:var(--color-fg-muted)}
+.ff .card h2 + .note{margin-top:var(--cds-gap-xs)}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+[data-dash-source-state=empty]{color:transparent}
+</style>
+<div class="ff">
+  <header id="top">
+    <h1>Flood Forecast</h1>
+    <p class="lede">Spot trends early, see where they're headed, and keep an eye on world risk. Updated every 6 hours.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" data-tab="trends" aria-selected="false">Trends</button>
+    <button class="tab" role="tab" data-tab="risk" aria-selected="false">World risk</button>
+    <button class="tab" role="tab" data-tab="model" aria-selected="false">How it works</button>
+  </nav>
+
+  <section class="page" id="overview" role="tabpanel">
+    <div class="pagehead"><h2 class="ptitle">Overview</h2><p class="note">The big picture: every trend on one map, and where the hottest ones are headed.</p></div>
+    <section class="card" id="glance">
+      <h2>Everything at a glance</h2>
+      <p class="note">Every trend on one map. Left to right is how far along it is, from just emerging to crowded. Higher means hotter right now. Bigger bubbles have more evidence. The sweet spot is the green corner: early and heating up.</p>
+      <div class="legend">
+        <span><i class="sw zone" data-z="Get in early"></i>Get in early</span>
+        <span><i class="sw zone" data-z="Hot now"></i>Hot now</span>
+        <span><i class="sw zone" data-z="Crowded"></i>Crowded</span>
+        <span><i class="sw zone" data-z="Fading"></i>Fading</span>
+      </div>
+      <div class="chart glance" data-draw="glancechart" data-source="map"></div>
+    </section>
+
+    <section class="card" id="forecastcard">
+      <h2>Where each trend is headed</h2>
+      <p class="note">Solid lines are what happened. Dashed lines are the forecast, with the shaded band showing how sure it is. Right now it can see <b data-draw="reach" data-source="projection" data-field="horizon_weeks" data-row="0">—</b> weeks ahead from <b data-draw="histw" data-source="projection" data-field="history_weeks" data-row="0">—</b> weeks of history. That reach grows as the collector logs more data and as its calls prove right, up to five years out.</p>
+      <div class="legend" data-draw="fclegend" data-source="projection"></div>
+      <div class="chart" data-draw="fcchart" data-source="projection"></div>
+    </section>
+  </section>
+
+  <section class="page" id="trends" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">Trends</h2><p class="note">What's heating up, which signal types are driving it, and the raw signals behind every number.</p></div>
+    <section class="card" id="trendcard">
+      <h2>Heat over time</h2>
+      <p class="note">Weekly heat per field over the last year. Rising lines are heating up. Fills in more as the collector logs signals.</p>
+      <div class="chart" data-draw="trendchart" data-source="trend"></div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="heatmap">
+        <h2>Heat map: field by signal type</h2>
+        <p class="note">Darker blue is hotter. Red cells mean crowding signals.</p>
+        <div class="chart" data-draw="heatmapchart" data-source="grid"></div>
+      </section>
+      <section class="card" id="catbars">
+        <h2>Which signal types are peaking</h2>
+        <p class="note">Total heat per signal type across every field.</p>
+        <div class="chart" data-draw="catchart" data-source="cats"></div>
+      </section>
+    </div>
+
+    <section class="card" id="heat">
+      <h2>Heat incoming</h2>
+      <p class="note">Heat flowing toward jobs means opportunity is building. Heat flowing toward courses and tutorials means crowding is on the way.</p>
+      <div class="tablebox">
+        <table data-source="heat" data-row-key="field">
+          <thead><tr><th data-field="field">Field</th><th class="r" data-field="heat_now">Heat now</th><th class="r" data-field="jobs_incoming">Toward jobs</th><th class="r" data-field="courses_incoming">Toward courses</th><th data-field="outlook">Outlook</th></tr></thead>
+          <tbody data-draw="htable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card" id="radar">
+      <h2>Early signal radar</h2>
+      <p class="note">Real-world signals showing which stage each field is in. Green means heating up, amber is building, red means crowding.</p>
+      <div class="tablebox">
+        <table data-source="radar" data-row-key="signal">
+          <thead><tr><th data-field="date">Date</th><th data-field="field">Field</th><th data-field="category">Type</th><th data-field="signal">Signal</th><th data-field="stage">Stage</th><th data-field="source">Source</th></tr></thead>
+          <tbody data-draw="rtable"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <section class="page" id="risk" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">World risk</h2><p class="note">Today's pressure on the world system, and what serious forecasters say the real odds are.</p></div>
+    <section class="card" id="doom">
+      <h2>Doomsday gauge</h2>
+      <p class="note">How stressed the world system is right now, on a 0 to 100 scale per risk, rescored daily from the news. This measures pressure right now. For actual probabilities, see the realistic odds panel below, built only from published forecaster and expert estimates.</p>
+      <div class="doomgrid">
+        <div>
+          <div class="chart gauge" data-draw="gauge" data-source="risk"></div>
+          <p class="label">Official Doomsday Clock: <b data-draw="clocksec" data-source="clock" data-field="seconds_to_midnight" data-row="0">—</b> seconds to midnight, set <span data-draw="clockdate" data-source="clock" data-field="set_on" data-row="0">—</span> by the Bulletin of the Atomic Scientists.</p>
+        </div>
+        <div class="chart" data-draw="riskbars" data-source="risk"></div>
+      </div>
+    </section>
+
+    <section class="card" id="odds">
+      <h2>Realistic odds: what serious forecasters say</h2>
+      <p class="note">Published estimates from tested forecasters and expert surveys, on a log scale so tiny and large odds both fit. Tap a dot for the source.</p>
+      <p class="lede">Bottom line: top forecasters put human extinction by 2100 at about <b data-draw="o_es" data-source="odds" data-field="value" data-where="key=ext_super">—</b>%, and domain experts at about <b data-draw="o_ee" data-source="odds" data-field="value" data-where="key=ext_expert">—</b>%. A disaster killing at least 1 in 10 people is far likelier: <b data-draw="o_cs" data-source="odds" data-field="value" data-where="key=cat_super">—</b>% to <b data-draw="o_ce" data-source="odds" data-field="value" data-where="key=cat_expert">—</b>%. Big but survivable disasters, like a war or pandemic killing over a million people in a year, are the real near-term risk. Nobody can check these numbers until it's too late, so treat them as informed judgment, not fact.</p>
+      <div class="chart" data-draw="oddschart" data-source="odds"></div>
+      <h2 style="margin-top:var(--cds-gap-lg)">Triangulated consensus</h2>
+      <p class="note">Each outcome's estimates pooled into one number, plus what that works out to per year. The per-year figure is the one to compare with everyday risks.</p>
+      <div class="tablebox">
+        <table data-source="consensus" data-row-key="outcome">
+          <thead><tr><th data-field="outcome">Outcome</th><th class="r" data-field="estimates">Sources</th><th class="r" data-field="lowest">Lowest</th><th class="r" data-field="highest">Highest</th><th class="r" data-field="consensus">Consensus</th><th class="r" data-field="per_year">Per year</th></tr></thead>
+          <tbody data-draw="ctable"></tbody>
+        </table>
+      </div>
+    </section>
+  </section>
+
+  <section class="page" id="model" role="tabpanel" hidden>
+    <div class="pagehead"><h2 class="ptitle">How it works</h2><p class="note">The career forecasts, the influence network, how accurate the model has been, and the method.</p></div>
+    <section class="tiles" id="tiles">
+      <div class="card tile"><span class="label">Robotics technician floods around</span><span class="num" data-draw="t_robot" data-source="forecasts" data-field="flood_year" data-where="field=Robotics%20technician">—</span></div>
+      <div class="card tile"><span class="label">Agentic AI engineer floods around</span><span class="num" data-draw="t_agent" data-source="forecasts" data-field="flood_year" data-where="field=Agentic%20AI%20engineer">—</span></div>
+      <div class="card tile"><span class="label">Backtest average miss (years)</span><span class="num" data-draw="t_mae" data-source="model" data-field="mae_years">—</span></div>
+      <div class="card tile"><span class="label">Past trends the model learned from</span><span class="num" data-draw="t_cases" data-source="model" data-field="past_cases">—</span></div>
+    </section>
+
+    <section class="card" id="timeline">
+      <h2>Trend timelines and forecasts</h2>
+      <p class="note">Filled dots are stages that already happened. Hollow dots are forecasts, with the bar showing the backtest error range. The dashed line is today.</p>
+      <div class="legend">
+        <span><i class="sw st" data-i="0"></i>Tech emerges</span>
+        <span><i class="sw st" data-i="1"></i>Funding boom</span>
+        <span><i class="sw st" data-i="2"></i>Job spike</span>
+        <span><i class="sw st" data-i="3"></i>Courses boom</span>
+        <span><i class="sw st" data-i="4"></i>Content flood</span>
+        <span><i class="sw st" data-i="5"></i>Flooded</span>
+        <span><i class="sw hollow"></i>Forecast</span>
+      </div>
+      <div class="chart" data-draw="timeline" data-source="stages"></div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="forecasts">
+        <h2>Forecasts for today's fields</h2>
+        <p class="note">Barrier: 1 means anyone with a laptop can enter in weeks, 5 means physical skill, credentials and years.</p>
+        <div class="tablebox">
+          <table data-source="forecasts" data-row-key="field">
+            <thead><tr><th data-field="field">Field</th><th class="r" data-field="barrier">Barrier</th><th class="r" data-field="flood_year">Floods</th><th class="r" data-field="low">Earliest</th><th class="r" data-field="high">Latest</th><th class="r" data-field="years_left">Years left</th></tr></thead>
+            <tbody data-draw="ftable"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" id="backtest">
+        <h2>Backtest: would it have called the past?</h2>
+        <p class="note">Each past trend was hidden from the model, then predicted. Bars show how many years early or late the guess was.</p>
+        <div class="chart" data-draw="backtest" data-source="backtest"></div>
+      </section>
+    </div>
+
+    <section class="card" id="network">
+      <h2>Influence network</h2>
+      <p class="note">How each kind of signal pushes the others, including what key people say and do. Thicker arrows push harder. Tap an arrow for its lead time. Strengths start as estimates and get relearned as the hourly collector logs signals.</p>
+      <div class="chart net" data-draw="network" data-source="edges"></div>
+    </section>
+
+    <section class="card" id="accuracy">
+      <h2>Predictor accuracy over time</h2>
+      <p class="note">Share of calls that came true. It starts from the backtest (past trends called within 3 years). Each week the collector checks calls made 30 or more days earlier against what actually happened, so this line should climb as the model learns.</p>
+      <div class="chart" data-draw="accchart" data-source="accuracy"></div>
+    </section>
+
+    <section class="card method" id="method">
+      <h2>How the algorithm works</h2>
+      <p class="method-lede">Any trend, in tech, money, culture, health or anything else, moves through the same six stages: it emerges, money floods in, it goes mainstream, how-tos and copycats boom, content floods social media, then it is crowded. A collector runs every 6 hours, watching key people in world power, money, AI and industry, plus stocks, politics, world events, news and social buzz, across sectors from AI and jobs to farms, oil, electricity, water and infrastructure. The model learns how long each stage lasts and forecasts what is next. Hands-on fields buy about <b data-draw="barrier" data-source="model" data-field="per_barrier_point">—</b> extra years per barrier point, and every year later a trend starts shortens its runway by <b data-draw="speed" data-source="model" data-field="per_year_later">—</b> years.</p>
+      <ol>
+        <li>Each trend gets a year for every stage it has reached.</li>
+        <li>The model learns the runway (years from job spike to flooded) from two things: when the trend started, and how hard the field is to enter.</li>
+        <li>Fields that still are not crowded, like wind turbine and EV techs, count as "at least this long", so hands-on work isn't underestimated.</li>
+        <li>Every past trend is hidden one at a time and predicted, which gives the honest error range.</li>
+      </ol>
+      <p class="label">Stage years for past trends are estimates from well-documented history, not measured job-posting series. Treat forecasts as ranges, not dates. Surprises like a new law, a crash or a breakthrough can break any model.</p>
+    </section>
+  </section>
+</div>
+<script>
+dash.calc('consensus', {
+  inputs: ['odds'],
+  title: 'Triangulated consensus',
+  description: 'For each outcome with two or more published estimates: the geometric mean of their odds (the standard way forecasters pool independent estimates), then the same chance spread evenly over the 75 years from 2025 to 2100 as a per-year figure.',
+  fn: (odds) => {
+    const groups = {};
+    odds.filter((r) => r.outcome).forEach((r) => { (groups[r.outcome] = groups[r.outcome] || []).push(r); });
+    return Object.entries(groups).filter(([, v]) => v.length >= 2).map(([outcome, v]) => {
+      const logOdds = v.map((r) => Math.log((r.value / 100) / (1 - r.value / 100)));
+      const mean = logOdds.reduce((a, b) => a + b, 0) / logOdds.length;
+      const p = 1 / (1 + Math.exp(-mean));
+      const perYear = 1 - Math.pow(1 - p, 1 / 75);
+      return {
+        outcome,
+        estimates: v.length,
+        lowest: Math.min(...v.map((r) => r.value)),
+        highest: Math.max(...v.map((r) => r.value)),
+        consensus: Math.round(p * 1000) / 10,
+        per_year: Math.round(perYear * 100000) / 1000,
+      };
+    });
+  },
+});
+</script>
+<script>
+dash.calc('projection', {
+  inputs: ['radar', 'accuracy'],
+  title: 'Heat forecast',
+  description: 'Weekly heat per trend projected forward with a damped trend line. How far ahead it reaches grows with the weeks of history collected (half as far ahead as there is history) and with the latest hit rate, up to five years.',
+  fn: (radar, accuracy) => {
+    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((r) => day(r.date)));
+    const first = Math.min(...radar.map((r) => day(r.date)));
+    const spanWeeks = Math.min(260, Math.max(1, Math.round((ref - first) / 7)));
+    const hits = accuracy.map((a) => a.hit_rate).filter((v) => v != null);
+    const rate = hits.length ? hits[hits.length - 1] : 0.5;
+    const horizon = Math.max(4, Math.min(260, Math.round(spanWeeks * 0.5 * Math.min(1.5, Math.max(0.5, rate / 0.67)))));
+    const iso = (t) => new Date(t * 864e5).toISOString().slice(0, 10);
+    const out = [];
+    [...new Set(radar.map((r) => r.field))].forEach((field) => {
+      const sig = radar.filter((r) => r.field === field);
+      const hist = [];
+      for (let w = spanWeeks; w >= 0; w--) {
+        const t = ref - w * 7;
+        hist.push(sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0));
+      }
+      const n = Math.min(12, hist.length), tail = hist.slice(-n);
+      const xm = (n - 1) / 2, ym = tail.reduce((a, b) => a + b, 0) / n;
+      let num = 0, den = 0; tail.forEach((v, i) => { num += (i - xm) * (v - ym); den += (i - xm) ** 2; });
+      const slope = den ? num / den : 0;
+      const resid = Math.sqrt(tail.reduce((s, v, i) => s + (v - (ym + slope * (i - xm))) ** 2, 0) / n) || 0.05;
+      const r2 = (v) => Math.round(v * 100) / 100;
+      hist.forEach((h, i) => out.push({ field, week: iso(ref - (hist.length - 1 - i) * 7), heat: r2(h), kind: 'actual', lo: null, hi: null, horizon_weeks: horizon, history_weeks: spanWeeks }));
+      let level = hist[hist.length - 1], damp = 0;
+      for (let k = 1; k <= horizon; k++) {
+        damp += Math.pow(0.95, k);
+        const f = level + slope * damp, band = resid * Math.sqrt(k) + 0.02 * k;
+        out.push({ field, week: iso(ref + k * 7), heat: r2(f), kind: 'forecast', lo: r2(f - band), hi: r2(f + band), horizon_weeks: horizon, history_weeks: spanWeeks });
+      }
+    });
+    return out;
+  },
+});
+</script>
+<script>
+dash.calc('map', {
+  inputs: ['radar'],
+  title: 'Trend map',
+  description: 'For each trend: how far along its lifecycle it is (the furthest stage its signals from the last year point to), its heat now (signals fading by half every 90 days), and how many signals back it.',
+  fn: (radar) => {
+    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const order = ['Tech emerges', 'Funding boom', 'Job spike', 'Courses boom', 'Content flood', 'Flooded'];
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((r) => day(r.date)));
+    return [...new Set(radar.map((r) => r.field))].map((field) => {
+      const sig = radar.filter((r) => r.field === field);
+      const recent = sig.filter((r) => ref - day(r.date) <= 365);
+      const stage = Math.max(1, ...recent.map((r) => order.indexOf(r.stage) + 1));
+      const heat = Math.round(sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0) * 100) / 100;
+      const zone = heat <= 0 ? 'Fading' : stage <= 2 ? 'Get in early' : stage <= 4 ? 'Hot now' : 'Crowded';
+      return { field, stage, heat, signals: sig.length, zone };
+    });
+  },
+});
+</script>
+<script>
+window.FF_CATS = ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'];
+dash.calc('grid', {
+  inputs: ['radar'],
+  title: 'Heat by field and type',
+  description: 'Heat now for every field and signal type: each signal counts 1 (hot), 0.5 (building) or -0.5 (crowding), fading by half every 90 days.',
+  fn: (radar) => {
+    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((r) => day(r.date)));
+    const out = [];
+    [...new Set(radar.map((r) => r.field))].forEach((field) => {
+      ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].forEach((category) => {
+        const h = radar.filter((r) => r.field === field && r.category === category)
+          .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
+        out.push({ field, category, heat: Math.round(h * 100) / 100 });
+      });
+    });
+    return out;
+  },
+});
+dash.calc('cats', {
+  inputs: ['radar'],
+  title: 'Heat by signal type',
+  description: 'Total heat per signal type across all fields, same scoring and 90-day fade.',
+  fn: (radar) => {
+    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((r) => day(r.date)));
+    return ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].map((category) => ({
+      category,
+      heat: Math.round(radar.filter((r) => r.category === category)
+        .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0) * 100) / 100,
+      signals: radar.filter((r) => r.category === category).length,
+    }));
+  },
+});
+dash.calc('trend', {
+  inputs: ['radar'],
+  title: 'Heat over the last year',
+  description: 'Heat per field at the end of each of the last 52 weeks, counting only signals dated by then.',
+  fn: (radar) => {
+    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((r) => day(r.date)));
+    const out = [];
+    [...new Set(radar.map((r) => r.field))].forEach((field) => {
+      for (let w = 51; w >= 0; w--) {
+        const t = ref - w * 7;
+        const h = radar.filter((r) => r.field === field && day(r.date) <= t)
+          .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0);
+        out.push({ field, week: new Date(t * 864e5).toISOString().slice(0, 10), heat: Math.round(h * 100) / 100 });
+      }
+    });
+    return out;
+  },
+});
+</script>
+<script>
+dash.calc('heat', {
+  inputs: ['radar', 'edges'],
+  title: 'Heat by field',
+  description: 'Each signal adds heat that fades by half every 90 days, then heat flows along the influence edges (one and two steps) into jobs and courses.',
+  fn: (radar, edges) => {
+    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const day = (s) => Date.parse(s) / 864e5;
+    const ref = Math.max(...radar.map((r) => day(r.date)));
+    const fields = [...new Set(radar.map((r) => r.field))];
+    const into = (to) => edges.filter((e) => e.to === to);
+    return fields.map((field) => {
+      const node = {};
+      radar.filter((r) => r.field === field).forEach((r) => {
+        node[r.category] = (node[r.category] || 0) + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90);
+      });
+      const flow = (to) => into(to).reduce((s, e) => s + e.strength * (node[e.from] || 0)
+        + 0.5 * into(e.from).reduce((s2, e2) => s2 + e2.strength * e.strength * (node[e2.from] || 0), 0), 0);
+      const now = Object.values(node).reduce((a, b) => a + b, 0);
+      const jobs = flow('Jobs'), courses = flow('Courses');
+      const outlook = jobs > courses + 0.2 ? 'Opportunity building' : courses > jobs + 0.2 ? 'Crowding coming' : now < 0 ? 'Cooling' : 'Balanced';
+      const r2 = (v) => Math.round(v * 100) / 100;
+      return { field, heat_now: r2(now), jobs_incoming: r2(jobs), courses_incoming: r2(courses), outlook };
+    });
+  },
+});
+</script>
+<script>
+(() => {
+  const tabs = document.querySelectorAll('.ff .tab');
+  const pages = document.querySelectorAll('.ff .page');
+  const show = (id, scroll) => {
+    if (![...pages].some((p) => p.id === id)) return;
+    pages.forEach((p) => { p.hidden = p.id !== id; });
+    tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.tab === id)));
+    dash.setLink(id);
+    if (scroll) document.querySelector('.ff .tabs').scrollIntoView({ block: 'start' });
+  };
+  tabs.forEach((t) => t.addEventListener('click', () => show(t.dataset.tab, true)));
+  const fromLink = location.hash.slice(1);
+  if (fromLink) show(fromLink, false);
+})();
+</script>
+<script>
+(() => {
+  const NOW = 2026.84;
+  const fmtY = d3.format('.1f');
+  const ok = (id) => dash.data(id).status === 'ok';
+  const rows = (id) => (ok(id) ? dash.data(id).data : []);
+  const setText = (el, v) => { el.textContent = v; };
+
+  document.querySelectorAll('.sw.st').forEach((s) => { s.style.background = dash.colors[+s.dataset.i % dash.colors.length]; });
+
+  const one = (id) => rows(id)[0];
+  dash.draw('barrier', (el) => { const m = one('model'); setText(el, m ? fmtY(m.per_barrier_point) : '—'); });
+  dash.draw('speed', (el) => { const m = one('model'); setText(el, m ? d3.format('.2f')(m.per_year_later) : '—'); });
+  dash.draw('t_mae', (el) => { const m = one('model'); setText(el, m ? '±' + fmtY(m.mae_years) : '—'); });
+  dash.draw('t_cases', (el) => { const m = one('model'); setText(el, m ? String(m.past_cases) : '—'); });
+  const byField = (f) => rows('forecasts').find((r) => r.field === f);
+  dash.draw('t_robot', (el) => { const r = byField('Robotics technician'); setText(el, r ? fmtY(r.flood_year) : '—'); });
+  dash.draw('t_agent', (el) => { const r = byField('Agentic AI engineer'); setText(el, r ? fmtY(r.flood_year) : '—'); });
+
+  dash.draw('ftable', (tb) => {
+    const data = rows('forecasts').slice().sort((a, b) => b.flood_year - a.flood_year);
+    tb.replaceChildren();
+    data.forEach((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.field;
+      [[r.field, ''], [String(r.barrier), 'r'], [fmtY(r.flood_year), 'r'], [fmtY(r.low), 'r'], [fmtY(r.high), 'r'], [fmtY(r.years_left), 'r']].forEach(([v, c], i) => {
+        const td = document.createElement('td'); td.textContent = v; if (c) td.className = c;
+        if (i === 5) td.classList.add(r.years_left >= 4 ? 'hot' : r.years_left >= 1 ? 'warm' : 'cold');
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  });
+
+  dash.draw('rtable', (tb) => {
+    const data = rows('radar').slice().sort((a, b) => (a.date < b.date ? 1 : -1));
+    tb.replaceChildren();
+    data.forEach((r) => {
+      const tr = document.createElement('tr');
+      tr.dataset.key = r.signal;
+      const cells = [r.date, r.field, r.category, r.signal, r.stage];
+      cells.forEach((v, i) => {
+        const td = document.createElement('td'); td.textContent = v;
+        if (i === 4) td.className = r.heat >= 3 ? 'hot' : r.heat === 2 ? 'warm' : 'cold';
+        tr.appendChild(td);
+      });
+      const td = document.createElement('td');
+      const a = document.createElement('a'); a.href = r.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = r.source;
+      td.appendChild(a); tr.appendChild(td);
+      tb.appendChild(tr);
+    });
+  });
+
+  const measure = (svg, texts) => {
+    const t = svg.append('text').attr('font-size', 12).style('font-family', 'var(--font-anthropic-sans)');
+    let w = 0; texts.forEach((s) => { t.text(s); w = Math.max(w, t.node().getComputedTextLength()); });
+    t.remove(); return w;
+  };
+
+  dash.draw('timeline', (el) => {
+    el.replaceChildren();
+    const data = rows('stages');
+    if (!data.length) return;
+    const groupOrder = { 'Forecast': 0, 'Still short': 1, 'Past trend': 2 };
+    const fields = Array.from(d3.group(data, (d) => d.field), ([f, v]) => ({ f, g: v[0].group, v }))
+      .sort((a, b) => groupOrder[a.g] - groupOrder[b.g] || d3.min(b.v, (d) => d.year) - d3.min(a.v, (d) => d.year));
+    const W = Math.max(300, el.clientWidth), rowH = 26;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const narrow = W < 560;
+    const labels = fields.map((d) => d.f);
+    const lw = Math.min(narrow ? 120 : 230, measure(svg, labels) + 12);
+    const m = { l: lw, r: 16, t: 8, b: 26 };
+    const H = m.t + m.b + fields.length * rowH + 12;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleLinear([1994, 2040], [m.l, W - m.r]);
+    const y = d3.scaleBand(labels, [m.t, H - m.b]).padding(0.3);
+    const g = svg.append('g');
+    g.append('g').attr('transform', `translate(0,${H - m.b})`)
+      .call(d3.axisBottom(x).ticks(narrow ? 4 : 9).tickFormat(d3.format('d')).tickSize(-(H - m.b - m.t)))
+      .attr('font-size', null).attr('font-family', null)
+      .call((a) => a.select('.domain').remove())
+      .call((a) => a.selectAll('line').attr('stroke', 'var(--cds-chart-grid)'))
+      .call((a) => a.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)'));
+    const lab = g.append('g').selectAll('text').data(fields).join('text')
+      .attr('x', 0).attr('y', (d) => y(d.f) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', (d) => (d.g === 'Forecast' ? 'var(--color-fg)' : 'var(--color-fg-muted)'))
+      .style('font-size', 'var(--cds-font-size-caption)').text((d) => d.f);
+    lab.each(function () { const s = this; let t = s.textContent; while (s.getComputedTextLength() > lw - 10 && t.length > 4) { t = t.slice(0, -2); s.textContent = t + '…'; } });
+    g.append('line').attr('x1', x(NOW)).attr('x2', x(NOW)).attr('y1', m.t).attr('y2', H - m.b)
+      .attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    const rowsG = g.append('g').selectAll('g').data(fields).join('g');
+    rowsG.append('line')
+      .attr('x1', (d) => x(d3.min(d.v, (p) => p.year))).attr('x2', (d) => x(d3.max(d.v, (p) => p.year)))
+      .attr('y1', (d) => y(d.f) + y.bandwidth() / 2).attr('y2', (d) => y(d.f) + y.bandwidth() / 2)
+      .attr('stroke', 'var(--cds-chart-axis)').attr('stroke-width', 2).attr('stroke-linecap', 'round');
+    const preds = data.filter((d) => d.low != null);
+    g.append('g').selectAll('line').data(preds).join('line')
+      .attr('x1', (d) => x(d.low)).attr('x2', (d) => x(d.high))
+      .attr('y1', (d) => y(d.field) + y.bandwidth() / 2).attr('y2', (d) => y(d.field) + y.bandwidth() / 2)
+      .attr('stroke', dash.colors[5 % dash.colors.length]).attr('stroke-opacity', 0.35).attr('stroke-width', 8).attr('stroke-linecap', 'round');
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    g.append('g').selectAll('circle').data(data).join('circle')
+      .attr('cx', (d) => x(d.year)).attr('cy', (d) => y(d.field) + y.bandwidth() / 2).attr('r', 5)
+      .attr('fill', (d) => (d.kind === 'predicted' ? 'var(--color-panel)' : dash.colors[(d.stage - 1) % dash.colors.length]))
+      .attr('stroke', (d) => dash.colors[(d.stage - 1) % dash.colors.length]).attr('stroke-width', 2)
+      .on('pointerenter pointermove', (ev, d) => {
+        const [px, py] = d3.pointer(ev, el);
+        tip.style('display', null).replaceChildren();
+        tip.append('div').attr('class', 't').text(d.field);
+        tip.append('div').text(`${d.stage_name}: ${d.kind === 'predicted' ? 'forecast ' : ''}${fmtY(d.year)}`);
+        if (d.low != null) tip.append('div').text(`Range ${fmtY(d.low)} to ${fmtY(d.high)}`);
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
+      })
+      .on('pointerleave', () => tip.style('display', 'none'));
+    el.style.minHeight = H + 'px';
+  });
+
+  dash.draw('backtest', (el) => {
+    el.replaceChildren();
+    const data = rows('backtest');
+    if (!data.length) return;
+    const W = Math.max(280, el.clientWidth), rowH = 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const lw = Math.min(170, measure(svg, data.map((d) => d.field)) + 12);
+    const m = { l: lw, r: 40, t: 8, b: 26 };
+    const H = m.t + m.b + data.length * rowH;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const ext = Math.max(8, d3.max(data, (d) => Math.abs(d.error_years)));
+    const x = d3.scaleLinear([-ext, ext], [m.l, W - m.r]);
+    const y = d3.scaleBand(data.map((d) => d.field), [m.t, H - m.b]).padding(0.35);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`)
+      .call(d3.axisBottom(x).ticks(5).tickFormat((v) => (v > 0 ? '+' : '') + v).tickSize(-(H - m.b - m.t)))
+      .attr('font-size', null).attr('font-family', null)
+      .call((a) => a.select('.domain').remove())
+      .call((a) => a.selectAll('line').attr('stroke', 'var(--cds-chart-grid)'))
+      .call((a) => a.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)'));
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-reference)');
+    const lab = svg.append('g').selectAll('text').data(data).join('text')
+      .attr('x', 0).attr('y', (d) => y(d.field) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((d) => d.field);
+    lab.each(function () { const s = this; let t = s.textContent; while (s.getComputedTextLength() > lw - 10 && t.length > 4) { t = t.slice(0, -2); s.textContent = t + '…'; } });
+    svg.append('g').selectAll('rect').data(data).join('rect')
+      .attr('x', (d) => x(Math.min(0, d.error_years))).attr('width', (d) => Math.max(2, Math.abs(x(d.error_years) - x(0))))
+      .attr('y', (d) => y(d.field)).attr('height', y.bandwidth()).attr('rx', 3)
+      .attr('fill', (d) => (Math.abs(d.error_years) <= 3 ? dash.colors[0] : 'var(--cds-chart-status-critical)'));
+    svg.append('g').selectAll('text').data(data).join('text')
+      .attr('x', (d) => x(d.error_years) + (d.error_years >= 0 ? 4 : -4)).attr('text-anchor', (d) => (d.error_years >= 0 ? 'start' : 'end'))
+      .attr('y', (d) => y(d.field) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+      .text((d) => (d.error_years > 0 ? '+' : '') + fmtY(d.error_years));
+    el.style.minHeight = H + 'px';
+  });
+  const axisStyle = (a) => a.attr('font-size', null).attr('font-family', null)
+    .call((s) => s.select('.domain').remove())
+    .call((s) => s.selectAll('line').attr('stroke', 'var(--cds-chart-grid)'))
+    .call((s) => s.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)'));
+
+  const ZONE = { 'Get in early': 'var(--color-ok)', 'Hot now': 'var(--color-warn)', 'Crowded': 'var(--color-bad)', 'Fading': 'var(--cds-chart-muted)' };
+  document.querySelectorAll('.sw.zone').forEach((s) => { s.style.background = ZONE[s.dataset.z]; });
+
+  dash.draw('glancechart', (el) => {
+    el.replaceChildren();
+    const data = rows('map');
+    if (!data.length) return;
+    const W = Math.max(300, el.clientWidth), H = Math.min(440, Math.max(320, W * 0.6));
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const m = { l: 14, r: 14, t: 14, b: 44 };
+    const x = d3.scaleLinear([0.5, 6.5], [m.l, W - m.r]);
+    const hmax = Math.max(1, d3.max(data, (d) => d.heat)), hmin = Math.min(-0.5, d3.min(data, (d) => d.heat));
+    const y = d3.scaleLinear([hmin, hmax * 1.15], [H - m.b, m.t]);
+    const bands = [[0.5, 2.5, 'Get in early'], [2.5, 4.5, 'Hot now'], [4.5, 6.5, 'Crowded']];
+    svg.append('g').selectAll('rect').data(bands).join('rect')
+      .attr('x', (b) => x(b[0])).attr('width', (b) => x(b[1]) - x(b[0])).attr('y', m.t).attr('height', H - m.b - m.t)
+      .style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.07);
+    svg.append('line').attr('x1', m.l).attr('x2', W - m.r).attr('y1', y(0)).attr('y2', y(0)).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    const stageLbl = W < 520 ? ['Emerging', 'Money', 'Main-\nstream', 'How-tos', 'Social', 'Crowded'] : ['Emerging', 'Money pours in', 'Goes mainstream', 'How-tos boom', 'Social flood', 'Crowded'];
+    svg.append('g').selectAll('text').data(stageLbl).join('text')
+      .attr('x', (s, i) => x(i + 1)).attr('y', H - m.b + 16).attr('text-anchor', 'middle')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((s) => s.replace('\n', ''));
+    svg.append('text').attr('x', W / 2).attr('y', H - 6).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg-muted)')
+      .style('font-size', 'var(--cds-font-size-caption)').text('Lifecycle stage →');
+    svg.append('text').attr('x', m.l + 4).attr('y', m.t + 12).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('↑ Hotter');
+    const r = d3.scaleSqrt([1, Math.max(2, d3.max(data, (d) => d.signals))], [7, 20]);
+    const pts = data.map((d) => ({ ...d, px: x(d.stage), py: y(d.heat), rr: r(d.signals) }));
+    d3.group(pts, (d) => d.stage).forEach((g) => { const n = g.length; g.sort((a, b) => b.heat - a.heat).forEach((d, i) => { d.px += (i - (n - 1) / 2) * Math.min(26, (x(1.9) - x(1)) / Math.max(1, n)); }); });
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    const gs = svg.append('g').selectAll('g').data(pts).join('g').attr('transform', (d) => `translate(${d.px},${d.py})`).style('cursor', 'pointer');
+    gs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone]).attr('fill-opacity', 0.75).attr('stroke', 'var(--color-panel)').attr('stroke-width', 2);
+    gs.append('text').attr('y', (d) => -d.rr - 4).attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)')
+      .style('font-size', 'var(--cds-font-size-caption)').text((d) => (W < 520 && d.field.length > 16 ? d.field.slice(0, 15) + '…' : d.field));
+    gs.on('pointerenter pointermove click', (ev, d) => {
+      const [px, py] = d3.pointer(ev, el);
+      tip.style('display', null).replaceChildren();
+      tip.append('div').attr('class', 't').text(d.field);
+      tip.append('div').text(`${d.zone} · heat ${d3.format('.2f')(d.heat)}`);
+      tip.append('div').text(`${d.signals} signal${d.signals === 1 ? '' : 's'} so far`);
+      const tw = tip.node().offsetWidth;
+      tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
+    }).on('pointerleave', () => tip.style('display', 'none'));
+    el.style.minHeight = H + 'px';
+  });
+
+  [['o_es', 'ext_super'], ['o_ee', 'ext_expert'], ['o_cs', 'cat_super'], ['o_ce', 'cat_expert']].forEach(([name, key]) => {
+    dash.draw(name, (el) => { const r = rows('odds').find((d) => d.key === key); setText(el, r ? d3.format('~g')(r.value) : '—'); });
+  });
+  dash.draw('ctable', (tb) => {
+    tb.replaceChildren();
+    rows('consensus').forEach((r) => {
+      const tr = document.createElement('tr'); tr.dataset.key = r.outcome;
+      const pct = (v) => `${d3.format('~g')(v)}%`;
+      [[r.outcome, ''], [String(r.estimates), 'r'], [pct(r.lowest), 'r'], [pct(r.highest), 'r'], [pct(r.consensus), 'r'], [pct(r.per_year), 'r']].forEach(([v, c], i) => {
+        const td = document.createElement('td'); td.textContent = v; if (c) td.className = c; if (i === 4) td.style.fontWeight = 'var(--cds-font-weight-medium)'; tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  });
+
+  dash.draw('oddschart', (el) => {
+    el.replaceChildren();
+    const data = rows('odds');
+    if (!data.length) return;
+    const groups = [...new Set(data.map((d) => d.group))];
+    const W = Math.max(300, el.clientWidth), narrow = W < 560;
+    const rowH = narrow ? 40 : 26, gapH = 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const lbl = (d) => `${d.label} · ${d.who}`;
+    const lw = narrow ? 0 : Math.min(330, measure(svg, data.map(lbl)) + 14);
+    const m = { l: narrow ? 8 : lw, r: 52, t: 6, b: 26 };
+    let yy = m.t; const pos = [];
+    groups.forEach((g) => { pos.push({ g, y: yy + 16, head: true }); yy += gapH; data.filter((d) => d.group === g).forEach((d) => { pos.push({ d, y: yy + rowH / 2 }); yy += rowH; }); });
+    const H = yy + m.b;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleLog([0.01, 100], [m.l, W - m.r]);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`)
+      .call(d3.axisBottom(x).tickValues([0.01, 0.1, 1, 10, 100]).tickFormat((v) => `${d3.format('~g')(v)}%`).tickSize(-(H - m.b - m.t)))
+      .call(axisStyle);
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    pos.forEach((p, i) => {
+      if (p.head) {
+        svg.append('text').attr('x', narrow ? m.l : 0).attr('y', p.y).attr('fill', 'var(--color-fg)')
+          .style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 'var(--cds-font-weight-medium)').text(p.g);
+        return;
+      }
+      const d = p.d, c = d.who.startsWith('Super') || d.who.startsWith('Samotsvety') ? dash.colors[0] : dash.colors[1 % dash.colors.length];
+      const dotY = narrow ? p.y + 7 : p.y;
+      svg.append('text').attr('x', narrow ? m.l : 0).attr('y', narrow ? p.y - 8 : p.y).attr('dy', '0.35em')
+        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(lbl(d))
+        .each(function () { const s = this, max = narrow ? W - 16 : lw - 10; let t = s.textContent; while (s.getComputedTextLength() > max && t.length > 6) { t = t.slice(0, -2); s.textContent = t + '…'; } });
+      if (d.low != null && d.high != null) svg.append('line').attr('x1', x(d.low)).attr('x2', x(d.high)).attr('y1', dotY).attr('y2', dotY)
+        .attr('stroke', c).attr('stroke-opacity', 0.4).attr('stroke-width', 6).attr('stroke-linecap', 'round');
+      svg.append('circle').attr('cx', x(d.value)).attr('cy', dotY).attr('r', 6).style('fill', c).style('cursor', 'pointer')
+        .on('pointerenter pointermove click', (ev) => {
+          const [px, py] = d3.pointer(ev, el);
+          tip.style('display', null).replaceChildren();
+          tip.append('div').attr('class', 't').text(d.label);
+          tip.append('div').text(`${d.who}: ${d3.format('~g')(d.value)}%${d.low != null ? ` (range ${d3.format('~g')(d.low)} to ${d3.format('~g')(d.high)}%)` : ''}`);
+          tip.append('div').text(d.source);
+          const tw = tip.node().offsetWidth;
+          tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
+        })
+        .on('pointerleave', () => tip.style('display', 'none'));
+      svg.append('text').attr('x', Math.min(x(d.high ?? d.value) + 10, W - m.r + 6)).attr('y', dotY).attr('dy', '0.35em')
+        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(`${d3.format('~g')(d.value)}%`);
+    });
+    el.style.minHeight = H + 'px';
+  });
+
+  const riskColor = (v) => (v >= 80 ? 'var(--color-bad)' : v >= 60 ? 'var(--cds-chart-status-critical)' : v >= 40 ? 'var(--color-warn)' : 'var(--color-ok)');
+  const riskWord = (v) => (v >= 80 ? 'Crisis' : v >= 60 ? 'High' : v >= 40 ? 'Elevated' : v >= 20 ? 'Normal tension' : 'Calm');
+  dash.draw('clocksec', (el) => { const c = rows('clock')[0]; setText(el, c ? String(c.seconds_to_midnight) : '—'); });
+  dash.draw('clockdate', (el) => { const c = rows('clock')[0]; setText(el, c ? d3.utcFormat('%b %-d, %Y')(new Date(c.set_on)) : '—'); });
+  dash.draw('gauge', (el) => {
+    el.replaceChildren();
+    const data = rows('risk');
+    if (!data.length) return;
+    const avg = d3.mean(data, (d) => d.level);
+    const W = Math.max(220, Math.min(360, el.clientWidth)), H = W * 0.62;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('max-width', '360px');
+    const cx = W / 2, cy = H - 18, R = W / 2 - 14;
+    const a = d3.scaleLinear([0, 100], [-Math.PI / 2, Math.PI / 2]);
+    const arc = d3.arc().innerRadius(R - 16).outerRadius(R);
+    [[0, 40, 'var(--color-ok)'], [40, 60, 'var(--color-warn)'], [60, 80, 'var(--cds-chart-status-critical)'], [80, 100, 'var(--color-bad)']].forEach(([s, e, c]) => {
+      svg.append('path').attr('transform', `translate(${cx},${cy})`).attr('d', arc({ startAngle: a(s), endAngle: a(e) })).style('fill', c).attr('fill-opacity', 0.35);
+    });
+    svg.append('path').attr('transform', `translate(${cx},${cy})`).attr('d', arc({ startAngle: a(0), endAngle: a(avg) })).style('fill', riskColor(avg));
+    const ang = a(avg) - Math.PI / 2;
+    svg.append('line').attr('x1', cx).attr('y1', cy).attr('x2', cx + (R - 24) * Math.cos(ang)).attr('y2', cy + (R - 24) * Math.sin(ang))
+      .attr('stroke', 'var(--color-fg)').attr('stroke-width', 3).attr('stroke-linecap', 'round');
+    svg.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 5).style('fill', 'var(--color-fg)');
+    svg.append('text').attr('x', cx).attr('y', cy - R * 0.38).attr('text-anchor', 'middle').style('font-family', 'var(--font-anthropic-serif)')
+      .style('font-size', 'var(--cds-font-size-title)').attr('fill', 'var(--color-fg)').text(d3.format('.0f')(avg));
+    svg.append('text').attr('x', cx).attr('y', cy - R * 0.38 + 20).attr('text-anchor', 'middle').style('font-size', 'var(--cds-font-size-caption)')
+      .attr('fill', 'var(--color-fg-muted)').text(`World stress: ${riskWord(avg)}`);
+    el.style.minHeight = H + 'px';
+  });
+  dash.draw('riskbars', (el) => {
+    el.replaceChildren();
+    const data = rows('risk').slice().sort((a, b) => b.level - a.level);
+    if (!data.length) return;
+    const W = Math.max(260, el.clientWidth), rowH = 30;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const lw = measure(svg, data.map((d) => d.category)) + 12;
+    const m = { l: lw, r: 70, t: 4, b: 4 };
+    const H = m.t + m.b + data.length * rowH;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const x = d3.scaleLinear([0, 100], [m.l, W - m.r]);
+    const y = d3.scaleBand(data.map((d) => d.category), [m.t, H - m.b]).padding(0.3);
+    svg.append('g').selectAll('rect.bg').data(data).join('rect').attr('class', 'bg').attr('x', m.l).attr('width', x(100) - m.l)
+      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3).style('fill', 'var(--cds-chart-grid)');
+    svg.append('g').selectAll('rect.v').data(data).join('rect').attr('class', 'v').attr('x', m.l).attr('width', (d) => Math.max(2, x(d.level) - m.l))
+      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3).style('fill', (d) => riskColor(d.level));
+    svg.append('g').selectAll('text.l').data(data).join('text').attr('class', 'l').attr('x', 0).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((d) => d.category);
+    const arrow = { up: '↑', down: '↓', flat: '→' };
+    svg.append('g').selectAll('text.n').data(data).join('text').attr('class', 'n').attr('x', W - m.r + 6).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text((d) => `${d.level} ${arrow[d.trend] || ''}`);
+    el.style.minHeight = H + 'px';
+  });
+
+  const topTrends = () => {
+    const d = rows('projection').filter((r) => r.kind === 'actual');
+    const last = d3.rollup(d, (v) => v[v.length - 1].heat, (r) => r.field);
+    return [...last].sort((a, b) => b[1] - a[1]).slice(0, 5).map((e) => e[0]);
+  };
+  dash.draw('reach', (el) => { const r = rows('projection')[0]; setText(el, r ? String(r.horizon_weeks) : '—'); });
+  dash.draw('histw', (el) => { const r = rows('projection')[0]; setText(el, r ? String(r.history_weeks) : '—'); });
+  dash.draw('fclegend', (el) => {
+    el.replaceChildren();
+    topTrends().forEach((f, i) => {
+      const sp = document.createElement('span'); const sw = document.createElement('i'); sw.className = 'sw';
+      sw.style.background = dash.colors[i % dash.colors.length]; sp.appendChild(sw); sp.appendChild(document.createTextNode(f)); el.appendChild(sp);
+    });
+  });
+  dash.draw('fcchart', (el) => {
+    el.replaceChildren();
+    const all = rows('projection');
+    if (!all.length) return;
+    const top = topTrends();
+    const data = all.filter((r) => top.includes(r.field)).map((r) => ({ ...r, t: new Date(r.week) }));
+    const W = Math.max(300, el.clientWidth), H = 280;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const m = { l: 36, r: 12, t: 12, b: 26 };
+    const x = d3.scaleUtc(d3.extent(data, (d) => d.t), [m.l, W - m.r]);
+    const lo = d3.min(data, (d) => (d.lo ?? d.heat)), hi = d3.max(data, (d) => (d.hi ?? d.heat));
+    const y = d3.scaleLinear([Math.min(0, lo), Math.max(0.5, hi)], [H - m.b, m.t]).nice();
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(W < 520 ? 3 : 6).tickFormat(d3.utcFormat('%b %y')).tickSize(0).tickPadding(8)).call(axisStyle);
+    svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r))).call(axisStyle);
+    const nowT = d3.max(data.filter((d) => d.kind === 'actual'), (d) => d.t);
+    svg.append('line').attr('x1', x(nowT)).attr('x2', x(nowT)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
+    svg.append('text').attr('x', x(nowT) + 4).attr('y', m.t + 10).attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text('Today');
+    top.forEach((f, i) => {
+      const c = dash.colors[i % dash.colors.length];
+      const act = data.filter((d) => d.field === f && d.kind === 'actual');
+      const fc = [act[act.length - 1], ...data.filter((d) => d.field === f && d.kind === 'forecast')];
+      svg.append('path').attr('d', d3.area().x((d) => x(d.t)).y0((d) => y(d.lo ?? d.heat)).y1((d) => y(d.hi ?? d.heat))(fc)).style('fill', c).attr('fill-opacity', 0.1);
+      svg.append('path').attr('d', d3.line().x((d) => x(d.t)).y((d) => y(d.heat))(act)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+      svg.append('path').attr('d', d3.line().x((d) => x(d.t)).y((d) => y(d.heat))(fc)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2).attr('stroke-dasharray', '5 4');
+    });
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    svg.append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b).attr('fill', 'transparent')
+      .on('pointermove', (ev) => {
+        const [px, py] = d3.pointer(ev, el);
+        const t = x.invert(d3.pointer(ev)[0]);
+        tip.style('display', null).replaceChildren();
+        tip.append('div').attr('class', 't').text(d3.utcFormat('%b %-d, %Y')(t));
+        top.forEach((f, i) => {
+          const s = data.filter((d) => d.field === f);
+          const near = s.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
+          const row = tip.append('div');
+          row.append('i').attr('class', 'sw').style('background', dash.colors[i % dash.colors.length]).style('margin-right', '6px');
+          row.append('span').text(`${f}: ${d3.format('.2f')(near.heat)}${near.kind === 'forecast' ? ' (forecast)' : ''}`);
+        });
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
+      })
+      .on('pointerleave', () => tip.style('display', 'none'));
+    el.style.minHeight = H + 'px';
+  });
+
+  dash.draw('trendchart', (el) => {
+    el.replaceChildren();
+    const data = rows('trend');
+    if (!data.length) return;
+    const byF = d3.group(data, (d) => d.field);
+    const last = (v) => v[v.length - 1].heat;
+    const series = Array.from(byF, ([f, v]) => ({ f, v: v.map((d) => ({ t: new Date(d.week), h: d.heat })) }))
+      .sort((a, b) => last(b.v.map((p) => ({ heat: p.h }))) - last(a.v.map((p) => ({ heat: p.h })))).slice(0, 6);
+    const W = Math.max(300, el.clientWidth), H = 260;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const narrow = W < 560;
+    const endW = narrow ? 0 : Math.min(200, measure(svg, series.map((s) => s.f)) + 16);
+    const m = { l: 36, r: 12 + endW, t: 10, b: 26 };
+    const x = d3.scaleUtc(d3.extent(data, (d) => new Date(d.week)), [m.l, W - m.r]);
+    const y = d3.scaleLinear([Math.min(0, d3.min(data, (d) => d.heat)), Math.max(0.5, d3.max(data, (d) => d.heat))], [H - m.b, m.t]).nice();
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(narrow ? 3 : 6).tickFormat(d3.utcFormat('%b %y')).tickSize(0).tickPadding(8)).call(axisStyle);
+    svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickSize(-(W - m.l - m.r))).call(axisStyle);
+    const line = d3.line().x((p) => x(p.t)).y((p) => y(p.h));
+    series.forEach((s, i) => {
+      const c = dash.colors[i % dash.colors.length];
+      svg.append('path').attr('d', line(s.v)).attr('fill', 'none').attr('stroke', c).attr('stroke-width', 2).attr('stroke-linejoin', 'round').attr('stroke-linecap', 'round');
+    });
+    if (!narrow) {
+      const ends = series.map((s, i) => ({ f: s.f, y: y(s.v[s.v.length - 1].h), c: dash.colors[i % dash.colors.length] })).sort((a, b) => a.y - b.y);
+      for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+      svg.append('g').selectAll('text').data(ends).join('text').attr('x', W - m.r + 6).attr('y', (d) => d.y).attr('dy', '0.35em')
+        .style('fill', (d) => d.c).style('font-size', 'var(--cds-font-size-caption)').text((d) => d.f);
+    } else {
+      const lg = d3.select(el).append('div').attr('class', 'legend');
+      series.forEach((s, i) => { const sp = lg.append('span'); sp.append('i').attr('class', 'sw').style('background', dash.colors[i % dash.colors.length]); sp.append('span').text(s.f); });
+    }
+    el.style.minHeight = H + 'px';
+  });
+
+  dash.draw('heatmapchart', (el) => {
+    el.replaceChildren();
+    const data = rows('grid');
+    if (!data.length) return;
+    const fields = [...new Set(data.map((d) => d.field))];
+    const cats = window.FF_CATS;
+    const W = Math.max(300, el.clientWidth);
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const lw = Math.min(W < 500 ? 110 : 190, measure(svg, fields) + 10);
+    const m = { l: lw, r: 6, t: 70, b: 6 };
+    const cw = (W - m.l - m.r) / cats.length, ch = 26;
+    const H = m.t + m.b + fields.length * ch;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const max = Math.max(0.01, d3.max(data, (d) => Math.abs(d.heat)));
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    svg.append('g').selectAll('rect').data(data).join('rect')
+      .attr('x', (d) => m.l + cats.indexOf(d.category) * cw + 1).attr('y', (d) => m.t + fields.indexOf(d.field) * ch + 1)
+      .attr('width', cw - 2).attr('height', ch - 2).attr('rx', 3)
+      .style('fill', (d) => (d.heat < 0 ? 'var(--cds-chart-status-critical)' : d.heat > 0 ? dash.colors[0] : 'var(--cds-chart-grid)'))
+      .attr('fill-opacity', (d) => (d.heat === 0 ? 0.5 : 0.15 + 0.85 * Math.abs(d.heat) / max))
+      .on('pointerenter pointermove', (ev, d) => {
+        const [px, py] = d3.pointer(ev, el);
+        tip.style('display', null).replaceChildren();
+        tip.append('div').attr('class', 't').text(`${d.field} · ${d.category}`);
+        tip.append('div').text(`Heat ${d3.format('.2f')(d.heat)}`);
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
+      })
+      .on('pointerleave', () => tip.style('display', 'none'));
+    const fl = svg.append('g').selectAll('text').data(fields).join('text').attr('x', 0).attr('y', (f, i) => m.t + i * ch + ch / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((f) => f);
+    fl.each(function () { const s = this; let t = s.textContent; while (s.getComputedTextLength() > lw - 8 && t.length > 4) { t = t.slice(0, -2); s.textContent = t + '…'; } });
+    svg.append('g').selectAll('text').data(cats).join('text')
+      .attr('transform', (c, i) => `translate(${m.l + i * cw + cw / 2},${m.t - 6}) rotate(-45)`)
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((c) => c);
+    el.style.minHeight = H + 'px';
+  });
+
+  dash.draw('catchart', (el) => {
+    el.replaceChildren();
+    const data = rows('cats').slice().sort((a, b) => b.heat - a.heat);
+    if (!data.length) return;
+    const W = Math.max(280, el.clientWidth), rowH = 28;
+    const svg = d3.select(el).append('svg').attr('width', '100%');
+    const lw = measure(svg, data.map((d) => d.category)) + 12;
+    const m = { l: lw, r: 44, t: 6, b: 6 };
+    const H = m.t + m.b + data.length * rowH;
+    svg.attr('viewBox', `0 0 ${W} ${H}`);
+    const lo = Math.min(0, d3.min(data, (d) => d.heat)), hi = Math.max(0.5, d3.max(data, (d) => d.heat));
+    const x = d3.scaleLinear([lo, hi], [m.l, W - m.r]);
+    const y = d3.scaleBand(data.map((d) => d.category), [m.t, H - m.b]).padding(0.3);
+    svg.append('g').selectAll('text').data(data).join('text').attr('x', 0).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text((d) => d.category);
+    svg.append('line').attr('x1', x(0)).attr('x2', x(0)).attr('y1', m.t).attr('y2', H - m.b).attr('stroke', 'var(--cds-chart-axis)');
+    svg.append('g').selectAll('rect').data(data).join('rect')
+      .attr('x', (d) => x(Math.min(0, d.heat))).attr('width', (d) => Math.max(d.heat === 0 ? 0 : 2, Math.abs(x(d.heat) - x(0))))
+      .attr('y', (d) => y(d.category)).attr('height', y.bandwidth()).attr('rx', 3)
+      .style('fill', (d, i) => (d.heat < 0 ? 'var(--cds-chart-status-critical)' : i === 0 ? dash.colors[0] : 'var(--cds-chart-muted)'));
+    svg.append('g').selectAll('text.v').data(data).join('text').attr('class', 'v')
+      .attr('x', (d) => x(Math.max(0, d.heat)) + 4).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
+      .text((d) => (d.signals ? d3.format('.2f')(d.heat) : 'no data yet'));
+    el.style.minHeight = H + 'px';
+  });
+
+  dash.draw('accchart', (el) => {
+    el.replaceChildren();
+    const data = rows('accuracy').map((d) => ({ ...d, t: new Date(d.at) }));
+    if (!data.length) return;
+    const W = Math.max(300, el.clientWidth), H = 200;
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const m = { l: 40, r: 16, t: 12, b: 26 };
+    const ext = d3.extent(data, (d) => d.t);
+    if (+ext[0] === +ext[1]) { ext[0] = d3.utcDay.offset(ext[0], -3); ext[1] = d3.utcDay.offset(ext[1], 30); }
+    const x = d3.scaleUtc(ext, [m.l, W - m.r]);
+    const y = d3.scaleLinear([0, 1], [H - m.b, m.t]);
+    svg.append('g').attr('transform', `translate(0,${H - m.b})`).call(d3.axisBottom(x).ticks(4).tickFormat(d3.utcFormat('%b %-d')).tickSize(0).tickPadding(8)).call(axisStyle);
+    svg.append('g').attr('transform', `translate(${m.l},0)`).call(d3.axisLeft(y).ticks(4).tickFormat(d3.format('.0%')).tickSize(-(W - m.l - m.r))).call(axisStyle);
+    svg.append('path').attr('d', d3.line().x((d) => x(d.t)).y((d) => y(d.hit_rate))(data))
+      .attr('fill', 'none').attr('stroke', dash.colors[0]).attr('stroke-width', 2).attr('stroke-linecap', 'round');
+    svg.append('g').selectAll('circle').data(data).join('circle').attr('cx', (d) => x(d.t)).attr('cy', (d) => y(d.hit_rate)).attr('r', 4).style('fill', dash.colors[0]);
+    const lastD = data[data.length - 1];
+    svg.append('text').attr('x', Math.min(x(lastD.t) + 8, W - m.r - 90)).attr('y', y(lastD.hit_rate) - 8)
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(`${d3.format('.0%')(lastD.hit_rate)} right now`);
+    el.style.minHeight = H + 'px';
+  });
+
+  dash.draw('htable', (tb) => {
+    const data = rows('heat').slice().sort((a, b) => b.jobs_incoming - a.jobs_incoming);
+    tb.replaceChildren();
+    data.forEach((r) => {
+      const tr = document.createElement('tr'); tr.dataset.key = r.field;
+      [[r.field, ''], [d3.format('.2f')(r.heat_now), 'r'], [d3.format('.2f')(r.jobs_incoming), 'r'], [d3.format('.2f')(r.courses_incoming), 'r'], [r.outlook, '']].forEach(([v, c], i) => {
+        const td = document.createElement('td'); td.textContent = v; if (c) td.className = c;
+        if (i === 4) td.classList.add(r.outlook === 'Opportunity building' ? 'hot' : r.outlook === 'Crowding coming' || r.outlook === 'Cooling' ? 'cold' : 'warm');
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+  });
+
+  dash.draw('network', (el) => {
+    el.replaceChildren();
+    const edges = rows('edges');
+    if (!edges.length) return;
+    const nodes = [...new Set(edges.flatMap((e) => [e.from, e.to]))];
+    const W = Math.max(300, el.clientWidth), H = Math.min(420, Math.max(300, W * 0.7));
+    const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`);
+    const R = Math.max(60, Math.min(W / 2 - 85, H / 2 - 30)), cx = W / 2, cy = H / 2;
+    const pos = {}; nodes.forEach((n, i) => { const a = -Math.PI / 2 + (i / nodes.length) * 2 * Math.PI; pos[n] = [cx + R * Math.cos(a), cy + R * Math.sin(a)]; });
+    const col = dash.colors[0];
+    svg.append('defs').append('marker').attr('id', 'ffarrow').attr('viewBox', '0 0 10 10').attr('refX', 9).attr('refY', 5)
+      .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto-start-reverse')
+      .append('path').attr('d', 'M0,0L10,5L0,10z').style('fill', col);
+    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
+    const nr = 7;
+    svg.append('g').selectAll('path').data(edges).join('path')
+      .attr('d', (e) => {
+        const [x1, y1] = pos[e.from], [x2, y2] = pos[e.to];
+        const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 1;
+        const sx = x1 + (dx / L) * (nr + 3), sy = y1 + (dy / L) * (nr + 3), ex = x2 - (dx / L) * (nr + 5), ey = y2 - (dy / L) * (nr + 5);
+        const mx = (sx + ex) / 2 - (dy / L) * 18, my = (sy + ey) / 2 + (dx / L) * 18;
+        return `M${sx},${sy}Q${mx},${my} ${ex},${ey}`;
+      })
+      .attr('fill', 'none').attr('stroke', col).attr('stroke-opacity', (e) => 0.25 + 0.6 * e.strength)
+      .attr('stroke-width', (e) => 1 + 4 * e.strength).attr('marker-end', 'url(#ffarrow)').style('cursor', 'pointer')
+      .on('pointerenter pointermove click', (ev, e) => {
+        const [px, py] = d3.pointer(ev, el);
+        tip.style('display', null).replaceChildren();
+        tip.append('div').attr('class', 't').text(e.edge);
+        const lead = e.lead_months < 1 ? 'days' : `about ${d3.format('.0f')(e.lead_months)} months`;
+        tip.append('div').text(`Strength ${d3.format('.2f')(e.strength)}, lead time ${lead}`);
+        tip.append('div').text(e.why);
+        const tw = tip.node().offsetWidth;
+        tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
+      })
+      .on('pointerleave', () => tip.style('display', 'none'));
+    const ng = svg.append('g').selectAll('g').data(nodes).join('g').attr('transform', (n) => `translate(${pos[n][0]},${pos[n][1]})`);
+    ng.append('circle').attr('r', nr).attr('fill', 'var(--color-panel)').attr('stroke', 'var(--color-fg)').attr('stroke-width', 2);
+    ng.append('text').text((n) => n).attr('text-anchor', (n) => (pos[n][0] < cx - 5 ? 'end' : pos[n][0] > cx + 5 ? 'start' : 'middle'))
+      .attr('x', (n) => (pos[n][0] < cx - 5 ? -12 : pos[n][0] > cx + 5 ? 12 : 0))
+      .attr('y', (n) => (Math.abs(pos[n][0] - cx) <= 5 ? (pos[n][1] < cy ? -14 : 22) : 4))
+      .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)');
+    el.style.minHeight = H + 'px';
+  });
+})();
+</script>
