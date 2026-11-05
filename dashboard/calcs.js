@@ -1,4 +1,15 @@
 // Calculations: every number the page derives from the datasets.
+// Heat score: raw heat points turned into 0 to 100, where 100 is the hottest trend right now.
+// Each signal counts 1 (hot), 0.5 (building) or -0.5 (crowding), fading by half every 90 days.
+window.ffScaleOf = (radar) => {
+  const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+  const day = (s) => Date.parse(s) / 864e5;
+  if (!radar.length) return 1;
+  const ref = Math.max(...radar.map((r) => day(r.date)));
+  const per = {};
+  radar.forEach((r) => { per[r.field] = (per[r.field] || 0) + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90); });
+  return 100 / Math.max(0.01, ...Object.values(per));
+};
 dash.calc('kpsignals', {
   inputs: ['radar'],
   title: 'Key people signals',
@@ -45,6 +56,7 @@ dash.calc('projection', {
     const horizon = Math.max(4, Math.min(260, Math.round(spanWeeks * 0.5 * Math.min(1.5, Math.max(0.5, rate / 0.67)))));
     const iso = (t) => new Date(t * 864e5).toISOString().slice(0, 10);
     const out = [];
+    const k = window.ffScaleOf(radar);
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       const sig = radar.filter((r) => r.field === field);
       const hist = [];
@@ -57,7 +69,7 @@ dash.calc('projection', {
       let num = 0, den = 0; tail.forEach((v, i) => { num += (i - xm) * (v - ym); den += (i - xm) ** 2; });
       const slope = den ? num / den : 0;
       const resid = Math.sqrt(tail.reduce((s, v, i) => s + (v - (ym + slope * (i - xm))) ** 2, 0) / n) || 0.05;
-      const r2 = (v) => Math.round(v * 100) / 100;
+      const r2 = (v) => Math.round(v * k);
       hist.forEach((h, i) => out.push({ field, week: iso(ref - (hist.length - 1 - i) * 7), heat: r2(h), kind: 'actual', lo: null, hi: null, horizon_weeks: horizon, history_weeks: spanWeeks }));
       let level = hist[hist.length - 1], damp = 0;
       for (let k = 1; k <= horizon; k++) {
@@ -79,13 +91,14 @@ dash.calc('map', {
     const order = ['Tech emerges', 'Funding boom', 'Job spike', 'Courses boom', 'Content flood', 'Flooded'];
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
+    const k = window.ffScaleOf(radar);
     return [...new Set(radar.map((r) => r.field))].map((field) => {
       const sig = radar.filter((r) => r.field === field);
       const recent = sig.filter((r) => ref - day(r.date) <= 365);
       const stage = Math.max(1, ...recent.map((r) => order.indexOf(r.stage) + 1));
-      const heat = Math.round(sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0) * 100) / 100;
-      const zone = heat <= 0 ? 'Fading' : stage <= 2 ? 'Get in early' : stage <= 4 ? 'Hot now' : 'Crowded';
-      return { field, stage, heat, signals: sig.length, zone };
+      const pts = sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
+      const zone = pts <= 0 ? 'Fading' : stage <= 2 ? 'Get in early' : stage <= 4 ? 'Hot now' : 'Crowded';
+      return { field, stage, heat: Math.round(pts * k), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone };
     });
   },
 });
@@ -94,17 +107,18 @@ window.FF_CATS = ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'S
 dash.calc('grid', {
   inputs: ['radar'],
   title: 'Heat by field and type',
-  description: 'Heat now for every field and signal type: each signal counts 1 (hot), 0.5 (building) or -0.5 (crowding), fading by half every 90 days.',
+  description: 'Heat now for every field and signal type, on the same 0 to 100 score as the trends (100 is the hottest trend right now).',
   fn: (radar) => {
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const out = [];
+    const k = window.ffScaleOf(radar);
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].forEach((category) => {
         const h = radar.filter((r) => r.field === field && r.category === category)
           .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
-        out.push({ field, category, heat: Math.round(h * 100) / 100 });
+        out.push({ field, category, heat: Math.round(h * k), heat_pts: Math.round(h * 100) / 100 });
       });
     });
     return out;
@@ -113,17 +127,19 @@ dash.calc('grid', {
 dash.calc('cats', {
   inputs: ['radar'],
   title: 'Heat by signal type',
-  description: 'Total heat per signal type across all fields, same scoring and 90-day fade.',
+  description: 'Total heat per signal type across all fields, same scoring and 90-day fade, shown as a 0 to 100 score where the hottest signal type is 100.',
   fn: (radar) => {
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
-    return ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].map((category) => ({
+    const rows = ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].map((category) => ({
       category,
-      heat: Math.round(radar.filter((r) => r.category === category)
-        .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0) * 100) / 100,
+      pts: radar.filter((r) => r.category === category)
+        .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0),
       signals: radar.filter((r) => r.category === category).length,
     }));
+    const top = Math.max(0.01, ...rows.map((r) => r.pts));
+    return rows.map((r) => ({ category: r.category, heat: Math.round((r.pts / top) * 100), heat_pts: Math.round(r.pts * 100) / 100, signals: r.signals }));
   },
 });
 dash.calc('trend', {
@@ -135,12 +151,13 @@ dash.calc('trend', {
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const out = [];
+    const k = window.ffScaleOf(radar);
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       for (let w = 51; w >= 0; w--) {
         const t = ref - w * 7;
         const h = radar.filter((r) => r.field === field && day(r.date) <= t)
           .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0);
-        out.push({ field, week: new Date(t * 864e5).toISOString().slice(0, 10), heat: Math.round(h * 100) / 100 });
+        out.push({ field, week: new Date(t * 864e5).toISOString().slice(0, 10), heat: Math.round(h * k) });
       }
     });
     return out;
@@ -150,23 +167,24 @@ dash.calc('trend', {
 dash.calc('watched', {
   inputs: ['watchlist', 'map', 'trend', 'radar'],
   title: 'Watched trends, then vs now',
-  description: 'For each watched trend: its heat, stage and zone when you started watching, 30 days ago (from the weekly heat series) and now, the change, new signals since you started watching, and a status: trending harder (heat up 0.3+ or moving toward hot), cooling off (heat down 0.3+), becoming a problem (newly crowded or fading), else steady.',
+  description: 'For each watched trend: its heat, stage and zone when you started watching, 30 days ago (from the weekly heat series) and now, the change, new signals since you started watching, and a status: trending harder (heat score up 5+ or moving toward hot), cooling off (heat score down 5+), becoming a problem (newly crowded or fading), else steady.',
   fn: (watchlist, map, trend, radar) => watchlist.map((w) => {
     const now = map.find((r) => r.field === w.field);
     const series = trend.filter((r) => r.field === w.field);
     const ago = series.length > 4 ? series[series.length - 5].heat : null;
-    const r2 = (v) => (v == null ? null : Math.round(v * 100) / 100);
+    const r2 = (v) => (v == null ? null : Math.round(v));
+    const base = Math.round((w.base_heat || 0) * window.ffScaleOf(radar));
     const nh = now ? now.heat : null;
-    const dh = nh == null ? 0 : nh - w.base_heat;
+    const dh = nh == null ? 0 : nh - base;
     let status = 'Steady';
     if (!now) status = 'No new data';
     else if ((now.zone === 'Crowded' || now.zone === 'Fading') && now.zone !== w.base_zone) status = 'Becoming a problem';
-    else if (dh >= 0.3 || (now.stage > w.base_stage && now.zone !== 'Crowded')) status = 'Trending harder';
-    else if (dh <= -0.3) status = 'Cooling off';
+    else if (dh >= 5 || (now.stage > w.base_stage && now.zone !== 'Crowded')) status = 'Trending harder';
+    else if (dh <= -5) status = 'Cooling off';
     const fresh = radar.filter((s) => s.field === w.field && s.date >= w.since).sort((a, b) => (a.date < b.date ? 1 : -1));
     return {
       field: w.field, since: w.since,
-      base_heat: w.base_heat, base_stage: w.base_stage, base_zone: w.base_zone,
+      base_heat: base, base_stage: w.base_stage, base_zone: w.base_zone,
       heat_30d_ago: r2(ago), now_heat: r2(nh), now_stage: now ? now.stage : null, now_zone: now ? now.zone : null,
       change_since: r2(dh), change_30d: ago == null || nh == null ? null : r2(nh - ago),
       new_signals: fresh.length, latest: fresh.length ? fresh[0].signal : '', status,
@@ -185,7 +203,7 @@ dash.calc('digest', {
     const rows = Object.entries(byF).map(([field, s]) => {
       const now = s[s.length - 1].heat, then = s.length > 4 ? s[s.length - 5].heat : s[0].heat;
       const m = map.find((x) => x.field === field) || {};
-      return { field, delta: Math.round((now - then) * 100) / 100, zone: m.zone };
+      return { field, delta: Math.round(now - then), zone: m.zone };
     });
     const out = [];
     rows.filter((r) => r.delta > 0 && r.zone !== 'Fading').sort((a, b) => b.delta - a.delta).slice(0, 3)
@@ -217,6 +235,7 @@ dash.calc('heat', {
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const fields = [...new Set(radar.map((r) => r.field))];
     const into = (to) => edges.filter((e) => e.to === to);
+    const k = window.ffScaleOf(radar);
     return fields.map((field) => {
       const node = {};
       radar.filter((r) => r.field === field).forEach((r) => {
@@ -227,7 +246,7 @@ dash.calc('heat', {
       const now = Object.values(node).reduce((a, b) => a + b, 0);
       const jobs = flow('Jobs'), courses = flow('Courses');
       const outlook = jobs > courses + 0.2 ? 'Opportunity building' : courses > jobs + 0.2 ? 'Crowding coming' : now < 0 ? 'Cooling' : 'Balanced';
-      const r2 = (v) => Math.round(v * 100) / 100;
+      const r2 = (v) => Math.round(v * k);
       return { field, heat_now: r2(now), jobs_incoming: r2(jobs), courses_incoming: r2(courses), outlook };
     });
   },

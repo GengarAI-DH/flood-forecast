@@ -233,7 +233,7 @@
     sats.append('circle').attr('r', (s) => 3.5 + Math.sqrt(s.n) * 1.8).style('fill', (s) => catColor(s.cat)).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
     const satLbl = sats.append('text').attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text((s) => s.cat);
     const bubs = bubG.selectAll('g').data(pts).join('g').attr('data-trend', (d) => d.field)
-      .on('pointerenter pointermove', (ev, d) => showTip(ev, [d.field, `${d.zone} · heat ${d3.format('.2f')(d.heat)}`, `${d.signals} signal${d.signals === 1 ? '' : 's'} · tap for why`]))
+      .on('pointerenter pointermove', (ev, d) => showTip(ev, [d.field, `${d.zone} · heat ${d3.format('.0f')(d.heat)} of 100`, `${d.signals} signal${d.signals === 1 ? '' : 's'} · tap for why`]))
       .on('pointerleave', hideTip);
     const lensOn = dash.params().lens === 'me';
     const fitOf = (f) => (rows('fit').find((r) => r.field === f) || {}).fit;
@@ -477,7 +477,7 @@
   dash.draw('tdname', (el) => setText(el, picked() || '—'));
   dash.draw('tdstats', (el) => {
     const m = rows('map').find((r) => r.field === picked());
-    setText(el, m ? `${m.zone} · stage ${m.stage} of 6 · heat ${d3.format('.2f')(m.heat)} · ${m.signals} signal${m.signals === 1 ? '' : 's'}` : (picked() ? 'No live signals for this one yet.' : '—'));
+    setText(el, m ? `${m.zone} · stage ${m.stage} of 6 · heat ${d3.format('.0f')(m.heat)} of 100 · ${m.signals} signal${m.signals === 1 ? '' : 's'}` : (picked() ? 'No live signals for this one yet.' : '—'));
   });
   dash.draw('tdwhy', (el) => {
     const f = picked(); if (!f) { setText(el, '—'); return; }
@@ -497,8 +497,8 @@
     if (!d.length) { setText(el, '—'); return; }
     const act = d.filter((r) => r.kind === 'actual'), fc = d.filter((r) => r.kind === 'forecast');
     const now = act[act.length - 1].heat, end = fc[fc.length - 1];
-    const dir = end.heat > now + 0.1 ? 'keep heating up' : end.heat < now - 0.1 ? 'cool off' : 'hold steady';
-    setText(el, `Heat ${d3.format('.2f')(now)} now. Over the next ${end.horizon_weeks} weeks it's forecast to ${dir}, reaching about ${d3.format('.2f')(end.heat)} (range ${d3.format('.2f')(end.lo)} to ${d3.format('.2f')(end.hi)}).`);
+    const dir = end.heat > now + 2 ? 'keep heating up' : end.heat < now - 2 ? 'cool off' : 'hold steady';
+    setText(el, `Heat ${d3.format('.0f')(now)} of 100 now. Over the next ${end.horizon_weeks} weeks it's forecast to ${dir}, reaching about ${d3.format('.0f')(end.heat)} (range ${d3.format('.0f')(end.lo)} to ${d3.format('.0f')(end.hi)}).`);
   });
   dash.draw('tddrivers', (el) => {
     el.replaceChildren();
@@ -566,7 +566,7 @@
   dash.draw('tdsignals', (el) => listInto(el, sigFor(picked()), 'No signals yet.'));
 
   const STATUS = { 'Trending harder': 'var(--color-ok)', 'Cooling off': 'var(--color-warn)', 'Becoming a problem': 'var(--color-bad)', 'Steady': 'var(--color-fg-muted)', 'No new data': 'var(--color-fg-muted)' };
-  const signed = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${d3.format('.2f')(v)}`);
+  const signed = (v) => (v == null ? '—' : `${v > 0 ? '+' : ''}${d3.format('.0f')(v)}`);
   dash.draw('tdwatchstate', (el) => {
     const f = picked(); if (!f) { setText(el, '—'); return; }
     const w = rows('watchlist').find((r) => r.field === f);
@@ -588,7 +588,7 @@
       [['30 days ago', w.heat_30d_ago], ['Since watching', w.base_heat], ['Now', w.now_heat]].forEach(([l, v]) => {
         const cell = document.createElement('div'); cell.className = 'wcell';
         const lab = document.createElement('span'); lab.className = 'label'; lab.textContent = l; cell.appendChild(lab);
-        const b = document.createElement('b'); b.textContent = v == null ? '—' : d3.format('.2f')(v); cell.appendChild(b);
+        const b = document.createElement('b'); b.textContent = v == null ? '—' : d3.format('.0f')(v); cell.appendChild(b);
         row.appendChild(cell);
       });
       c.appendChild(row);
@@ -634,7 +634,7 @@
     d.forEach((r) => {
       const li = document.createElement('li');
       const k = document.createElement('span'); k.className = 'dkind'; k.style.color = col[r.kind] || 'var(--color-fg)';
-      k.textContent = r.delta == null ? r.kind : `${r.kind} · heat ${r.delta > 0 ? '+' : ''}${d3.format('.2f')(r.delta)} in 4 weeks`; li.appendChild(k);
+      k.textContent = r.delta == null ? r.kind : `${r.kind} · heat ${r.delta > 0 ? '+' : ''}${d3.format('.0f')(r.delta)} in 4 weeks`; li.appendChild(k);
       const n = document.createElement('span'); n.className = 'wname tlink'; n.dataset.trend = r.field; n.textContent = r.field; li.appendChild(n);
       const why = document.createElement('span'); why.className = 'meta'; why.textContent = r.reason; li.appendChild(why);
       el.appendChild(li);
@@ -713,7 +713,7 @@
           const near = s.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
           const row = tip.append('div');
           row.append('i').attr('class', 'sw').style('background', dash.colors[i % dash.colors.length]).style('margin-right', '6px');
-          row.append('span').text(`${f}: ${d3.format('.2f')(near.heat)}${near.kind === 'forecast' ? ' (forecast)' : ''}`);
+          row.append('span').text(`${f}: ${d3.format('.0f')(near.heat)}${near.kind === 'forecast' ? ' (forecast)' : ''}`);
         });
         const tw = tip.node().offsetWidth;
         tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
@@ -780,7 +780,7 @@
         const [px, py] = d3.pointer(ev, el);
         tip.style('display', null).selectAll('*').remove();
         tip.append('div').attr('class', 't').text(`${d.field} · ${d.category}`);
-        tip.append('div').text(`Heat ${d3.format('.2f')(d.heat)}`);
+        tip.append('div').text(`Heat ${d3.format('.0f')(d.heat)} of 100`);
         const tw = tip.node().offsetWidth;
         tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
       })
@@ -817,7 +817,7 @@
     svg.append('g').selectAll('text.v').data(data).join('text').attr('class', 'v')
       .attr('x', (d) => x(Math.max(0, d.heat)) + 4).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
       .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
-      .text((d) => (d.signals ? d3.format('.2f')(d.heat) : 'no data yet'));
+      .text((d) => (d.signals ? d3.format('.0f')(d.heat) : 'no data yet'));
     el.style.minHeight = H + 'px';
   });
 
@@ -848,7 +848,7 @@
     tb.replaceChildren();
     data.forEach((r) => {
       const tr = document.createElement('tr'); tr.dataset.key = r.field; tr.dataset.trend = r.field;
-      [[r.field, 'tlink'], [d3.format('.2f')(r.heat_now), 'r'], [d3.format('.2f')(r.jobs_incoming), 'r'], [d3.format('.2f')(r.courses_incoming), 'r'], [r.outlook, '']].forEach(([v, c], i) => {
+      [[r.field, 'tlink'], [d3.format('.0f')(r.heat_now), 'r'], [d3.format('.0f')(r.jobs_incoming), 'r'], [d3.format('.0f')(r.courses_incoming), 'r'], [r.outlook, '']].forEach(([v, c], i) => {
         const td = document.createElement('td'); td.textContent = v; if (c) td.className = c;
         if (i === 4) td.classList.add(r.outlook === 'Opportunity building' ? 'hot' : r.outlook === 'Crowding coming' || r.outlook === 'Cooling' ? 'cold' : 'warm');
         tr.appendChild(td);

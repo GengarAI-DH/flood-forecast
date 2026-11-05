@@ -73,7 +73,7 @@
       if (window.ffWatch.has(field)) DATA.watchlist = DATA.watchlist.filter((w) => w.field !== field);
       else {
         const m = (memo('map').data || []).find((r) => r.field === field) || {};
-        DATA.watchlist = DATA.watchlist.concat([{ field, since: new Date().toISOString().slice(0, 10), base_heat: m.heat ?? 0, base_stage: m.stage ?? 1, base_zone: m.zone || 'Get in early', base_signals: m.signals ?? 0 }]);
+        DATA.watchlist = DATA.watchlist.concat([{ field, since: new Date().toISOString().slice(0, 10), base_heat: m.heat_pts ?? 0, base_stage: m.stage ?? 1, base_zone: m.zone || 'Get in early', base_signals: m.signals ?? 0 }]);
       }
       writeWatch(DATA.watchlist);
       refreshAll();

@@ -116,7 +116,7 @@
     <section class="card" id="glance">
       <div class="cardhead"><h2>Everything at a glance</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
       <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble to open why it's trending, who's behind it, and every source. Zoom in and each bubble sprouts small dots, one per signal type fueling it, sized by how many signals and colored by type.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded. When zoomed in, a trend fueled by Funding and Key people is early; one fueled by Social and Courses is late.</p></div>
-      <p class="note">Every trend on one map. Left to right is how far along it is, from just emerging to crowded. Higher means hotter right now. Bigger bubbles have more evidence. Tap any bubble to see why it's trending. The sweet spot is the green corner: early and heating up.</p>
+      <p class="note">Every trend on one map. Left to right is how far along it is, from just emerging to crowded. Higher means hotter right now. Bigger bubbles have more evidence. Heat is a score from 0 to 100, where 100 is the hottest trend right now. Tap any bubble to see why it's trending. The sweet spot is the green corner: early and heating up.</p>
       <div class="legend">
         <span><i class="sw zone" data-z="Get in early"></i>Get in early</span>
         <span><i class="sw zone" data-z="Hot now"></i>Hot now</span>
@@ -177,7 +177,7 @@
     <section class="card" id="trendcard">
       <div class="cardhead"><h2>Heat over time</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
       <div class="info" hidden><p><b>How to read it:</b> Each line is one trend's heat over the last year, measured weekly.</p><p><b>What it's for:</b> Shows momentum: is a trend speeding up, flat, or fading?</p><p><b>Watch for:</b> Lines that bend upward sharply are breakouts. A line rolling over after a peak often means crowding.</p></div>
-      <p class="note">Weekly heat per field over the last year. Rising lines are heating up. Fills in more as the collector logs signals.</p>
+      <p class="note">Weekly heat per field over the last year, scored 0 to 100 (100 is the hottest trend today). Rising lines are heating up. Fills in more as the collector logs signals.</p>
       <div class="chart" data-draw="trendchart" data-source="trend"></div>
     </section>
 
@@ -191,7 +191,7 @@
       <section class="card" id="catbars">
         <div class="cardhead"><h2>Which signal types are peaking</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
       <div class="info" hidden><p><b>How to read it:</b> Each bar is total heat for one signal type across every trend.</p><p><b>What it's for:</b> Shows where the action is right now across the whole world.</p><p><b>Watch for:</b> When Funding and Key people lead, new waves are starting. When Courses and Social lead, a lot of things are peaking.</p></div>
-        <p class="note">Total heat per signal type across every field.</p>
+        <p class="note">Total heat per signal type across every field, scored so the hottest type is 100.</p>
         <div class="chart" data-draw="catchart" data-source="cats"></div>
       </section>
     </div>
@@ -330,6 +330,7 @@
       <h2>How the algorithm works</h2>
       <p class="method-lede">Any trend, in tech, money, culture, health or anything else, moves through the same six stages: it emerges, money floods in, it goes mainstream, how-tos and copycats boom, content floods social media, then it is crowded. A collector runs every 6 hours, watching key people in world power, money, AI and industry, plus stocks, politics, world events, news and social buzz, across sectors from AI and jobs to farms, oil, electricity, water and infrastructure. The model learns how long each stage lasts and forecasts what is next. Hands-on fields buy about <b data-draw="barrier" data-source="model" data-field="per_barrier_point">—</b> extra years per barrier point, and every year later a trend starts shortens its runway by <b data-draw="speed" data-source="model" data-field="per_year_later">—</b> years.</p>
       <ol>
+        <li>Heat score: every signal counts 1 point if it's hot, 0.5 if it's building and −0.5 if it shows crowding, and fades by half every 90 days. Points are turned into a 0 to 100 score where 100 is the hottest trend right now, so every chart reads on the same scale. A score of 50 means half as hot as the leader.</li>
         <li>Each trend gets a year for every stage it has reached.</li>
         <li>The model learns the runway (years from job spike to flooded) from two things: when the trend started, and how hard the field is to enter.</li>
         <li>Fields that still are not crowded, like wind turbine and EV techs, count as "at least this long", so hands-on work isn't underestimated.</li>

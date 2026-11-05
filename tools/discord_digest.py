@@ -41,16 +41,19 @@ def main():
     for field, sig in by.items():
         sig.sort(key=lambda s: s["date"], reverse=True)
         rows.append((field, heat_at(sig, ref) - heat_at(sig, then), heat_at(sig, ref), sig[0]))
+    # Same 0 to 100 score as the site: 100 is the hottest trend right now.
+    k = 100 / max(0.01, max(r[2] for r in rows))
+    rows = [(f, d * k, h * k, s) for f, d, h, s in rows]
     hot = [r for r in sorted(rows, key=lambda r: -r[1]) if r[1] > 0 and r[2] > 0][:3]
     cool = sorted(rows, key=lambda r: r[1])[:1]
     whispers = sorted((s for s in radar if s["signal"].lower().startswith("early whisper")), key=lambda s: s["date"], reverse=True)
 
     lines = [f"**Flood Forecast · {dt.date.today():%b %-d}**", ""]
     for f, d, _, s in hot:
-        lines.append(f"🔥 **{f}** (heat +{d:.2f} in 4 weeks)\n> {s['signal']} ([{s['source']}]({s['url']}))")
+        lines.append(f"🔥 **{f}** (heat +{d:.0f} in 4 weeks)\n> {s['signal']} ([{s['source']}]({s['url']}))")
     for f, d, _, s in cool:
         if d < 0:
-            lines.append(f"🧊 **{f}** cooling (heat {d:.2f})\n> {s['signal']}")
+            lines.append(f"🧊 **{f}** cooling (heat {d:.0f} in 4 weeks)\n> {s['signal']}")
     if whispers:
         w = whispers[0]
         lines.append(f"👀 **Whisper: {w['field']}**\n> {w['signal'].split(':', 1)[-1].strip()}")
