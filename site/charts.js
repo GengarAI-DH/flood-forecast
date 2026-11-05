@@ -189,6 +189,7 @@
     const catColor = (c) => dash.colors[Math.max(0, cats.indexOf(c)) % dash.colors.length];
     const W = Math.max(300, el.clientWidth), H = Math.min(480, Math.max(340, W * 0.62));
     const svg = d3.select(el).append('svg').attr('width', '100%').attr('viewBox', `0 0 ${W} ${H}`).style('touch-action', 'pan-y');
+    const unlist = document.createElement('p'); unlist.className = 'unlabeled'; el.appendChild(unlist);
     const m = { l: 14, r: 14, t: 14, b: 44 };
     const clipId = 'ffclip';
     svg.append('clipPath').attr('id', clipId).append('rect').attr('x', m.l).attr('y', m.t).attr('width', W - m.l - m.r).attr('height', H - m.t - m.b);
@@ -242,10 +243,22 @@
       .on('pointerleave', hideTip);
     const lensOn = dash.params().lens === 'me';
     const fitOf = (f) => (rows('fit').find((r) => r.field === f) || {}).fit;
+    // Watched trends glow in their zone color; a big change adds a ! badge (green good, red bad).
+    const watchedRows = rows('watched') || [];
+    const wOf = (f) => watchedRows.find((w) => w.field === f);
+    const BIG = { 'Trending harder': 'good', 'Cooling off': 'bad', 'Becoming a problem': 'bad' };
+    svg.append('defs').append('filter').attr('id', 'ffglow').attr('x', '-60%').attr('y', '-60%').attr('width', '220%').attr('height', '220%')
+      .append('feGaussianBlur').attr('stdDeviation', 4);
+    bubs.filter((d) => !!wOf(d.field)).append('circle').attr('class', 'glow').attr('r', (d) => d.rr + 5)
+      .style('fill', (d) => ZONE[d.zone]).attr('fill-opacity', 0.75).attr('filter', 'url(#ffglow)').attr('pointer-events', 'none');
     bubs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone])
       .attr('fill-opacity', (d) => (lensOn ? (fitOf(d.field) == null ? 0.12 : 0.12 + 0.8 * fitOf(d.field) / 10) : 0.78))
       .attr('stroke', (d) => (lensOn && fitOf(d.field) >= 7 ? 'var(--color-fg)' : 'var(--color-panel)')).attr('stroke-width', (d) => (lensOn && fitOf(d.field) >= 7 ? 3 : 2));
     bubs.attr('opacity', (d) => (lensOn && !(fitOf(d.field) >= 4) ? 0.45 : 1));
+    const badge = bubs.filter((d) => wOf(d.field) && BIG[wOf(d.field).status]).append('g').attr('class', 'wbadge').attr('pointer-events', 'none')
+      .attr('transform', (d) => `translate(${d.rr * 0.72},${-d.rr * 0.72})`);
+    badge.append('circle').attr('r', 7).style('fill', (d) => (BIG[wOf(d.field).status] === 'good' ? 'var(--color-ok)' : 'var(--color-bad)')).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
+    badge.append('text').attr('text-anchor', 'middle').attr('dy', '0.36em').attr('fill', '#fff').style('font-size', '11px').style('font-weight', 700).text('!');
     const bubLbl = bubs.append('text').attr('text-anchor', 'middle').attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
       .attr('y', (d) => -d.rr - 4).text((d) => d.field);
     const render = (t) => {
@@ -257,20 +270,46 @@
       bubs.attr('transform', (d) => `translate(${d.px},${d.py})`);
       const full = W < 520 && k < 1.5;
       bubLbl.text((d) => (full && d.field.length > 22 ? d.field.slice(0, 21) + '…' : d.field)).attr('display', null).attr('x', 0);
-      const kept = [];
-      pts.slice().sort((a, b) => b.signals - a.signals || b.heat - a.heat).forEach((d) => {
+      // Place each label above, below, right or left of its bubble, whichever spot is free,
+      // so labels don't cover other labels or bubbles and never run off the map.
+      const kept = [], unl = [];
+      cg.selectAll('text').each(function () { const bb = this.getBBox(); kept.push({ x: bb.x, y: bb.y, w: bb.width, h: bb.height }); });
+      const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+      const inMap = pts.filter((d) => d.px > m.l - 20 && d.px < W - m.r + 20 && d.py > m.t - 10 && d.py < H - m.b + 10);
+      const circ = inMap.map((d) => ({ d, x: d.px - d.rr * 0.6, y: d.py - d.rr * 0.6, w: d.rr * 1.2, h: d.rr * 1.2 }));
+      const clampX = (left, w) => Math.min(Math.max(left, m.l + 2), W - m.r - 2 - w);
+      pts.slice().sort((a, b) => (!!wOf(b.field) - !!wOf(a.field)) || b.signals - a.signals || b.heat - a.heat).forEach((d) => {
         const node = bubLbl.filter((x) => x === d).node(); if (!node) return;
+        if (!inMap.includes(d)) { node.setAttribute('display', 'none'); return; }
         const w = node.getComputedTextLength(), h = 14;
-        // Slide the label sideways so it never runs off the edge of the map.
-        let left = d.px - w / 2;
-        if (left < m.l + 2) left = m.l + 2;
-        if (left + w > W - m.r - 2) left = W - m.r - 2 - w;
-        node.setAttribute('x', left + w / 2 - d.px);
-        const box = { x: left - 2, y: d.py - d.rr - 4 - h, w: w + 4, h };
-        const inView = d.px > m.l - 20 && d.px < W - m.r + 20 && d.py > m.t - 10 && d.py < H - m.b + 10;
-        const hit = kept.some((k) => box.x < k.x + k.w && box.x + box.w > k.x && box.y < k.y + k.h && box.y + box.h > k.y);
-        if (hit || !inView) node.setAttribute('display', 'none'); else kept.push(box);
+        const spots = [
+          { left: clampX(d.px - w / 2, w), base: d.py - d.rr - 4 },
+          { left: clampX(d.px - w / 2, w), base: d.py + d.rr + 13 },
+          { left: d.px + d.rr + 4, base: d.py + 4 },
+          { left: d.px - d.rr - 4 - w, base: d.py + 4 },
+        ];
+        const free = (s) => {
+          const box = { x: s.left - 2, y: s.base - h + 2, w: w + 4, h };
+          if (box.x < m.l || box.x + box.w > W - m.r || box.y < m.t || box.y + box.h > H - m.b + 2) return null;
+          if (kept.some((k2) => overlap(box, k2))) return null;
+          if (circ.some((c) => c.d !== d && overlap(box, c))) return null;
+          return box;
+        };
+        let pick = null, box = null;
+        for (const s of spots) { box = free(s); if (box) { pick = s; break; } }
+        if (!pick) { node.setAttribute('display', 'none'); unl.push(d.field); return; }
+        node.setAttribute('x', pick.left + w / 2 - d.px);
+        node.setAttribute('y', pick.base - d.py);
+        kept.push(box);
       });
+      unlist.replaceChildren();
+      if (unl.length) {
+        const lead = document.createElement('span'); lead.className = 'unlead'; lead.textContent = 'Too close to label (tap a name or zoom in): '; unlist.appendChild(lead);
+        unl.sort().forEach((f, i) => {
+          const sp = document.createElement('span'); sp.className = 'tlink'; sp.dataset.trend = f; sp.textContent = f; unlist.appendChild(sp);
+          if (i < unl.length - 1) unlist.appendChild(document.createTextNode(' · '));
+        });
+      }
       const showSats = k >= 1.8, ring = (d) => d.rr + 16 + Math.min(18, (k - 1.8) * 8);
       links.attr('display', showSats ? null : 'none')
         .attr('x1', (o) => o.d.px).attr('y1', (o) => o.d.py)
@@ -590,7 +629,11 @@
     const order = { 'Becoming a problem': 0, 'Trending harder': 1, 'Cooling off': 2, 'Steady': 3, 'No new data': 4 };
     list.slice().sort((a, b) => order[a.status] - order[b.status]).forEach((w) => {
       const c = document.createElement('div'); c.className = 'wcard';
+      const zc = ZONE[w.now_zone] || 'var(--color-border-line)';
+      c.style.borderColor = zc; c.style.boxShadow = `0 0 14px -2px ${zc}`;
+      const big = { 'Trending harder': 'var(--color-ok)', 'Cooling off': 'var(--color-bad)', 'Becoming a problem': 'var(--color-bad)' }[w.status];
       const top = document.createElement('div'); top.className = 'wtop';
+      if (big) { const bx = document.createElement('span'); bx.className = 'wbang'; bx.style.background = big; bx.textContent = '!'; bx.setAttribute('aria-label', w.status === 'Trending harder' ? 'Big change, good' : 'Big change, bad'); top.appendChild(bx); }
       const nm = document.createElement('span'); nm.className = 'wname tlink'; nm.dataset.trend = w.field; nm.textContent = w.field; top.appendChild(nm);
       const pill = document.createElement('span'); pill.className = 'pill'; pill.style.color = STATUS[w.status]; pill.textContent = w.status; top.appendChild(pill);
       c.appendChild(top);

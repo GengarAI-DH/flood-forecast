@@ -100,3 +100,8 @@
 .ff .sugg:not(.open){display:none}
 
 .ff .sparkcap { margin-top: 2px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.ff .unlabeled { margin: 6px 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.6; }
+.ff .unlabeled:empty { display: none; }
+.ff .unlabeled .tlink { color: var(--color-fg); }
+.ff .wbang { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; font-weight: 700; font-size: 13px; flex: none; margin-right: 6px; }
+.ff .wtop .wname { margin-right: auto; }
