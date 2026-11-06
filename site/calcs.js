@@ -84,7 +84,7 @@ dash.calc('projection', {
 dash.calc('map', {
   inputs: ['radar'],
   title: 'Trend map',
-  description: 'For each trend: how far along its lifecycle it is (the furthest stage its signals from the last year point to), its heat now (signals fading by half every 90 days), and how many signals back it.',
+  description: 'For each trend: how far along its lifecycle it is, its heat now on the fixed 0 to 100 scale, its change over 4 weeks, how its last 4 weeks compare with its own usual pace (vs normal), and how much of its heat is real-world action rather than talk (impact).',
   fn: (radar) => {
     const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
@@ -97,7 +97,24 @@ dash.calc('map', {
       const stage = Math.max(1, ...recent.map((r) => order.indexOf(r.stage) + 1));
       const pts = sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
       const zone = pts <= 0 ? 'Fading' : stage <= 2 ? 'Get in early' : stage <= 4 ? 'Hot now' : 'Crowded';
-      return { field, stage, heat: score(pts), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone };
+      // Change over the last 4 weeks on the same scale.
+      const ptsAt = (t) => sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0);
+      const change_4w = score(pts) - score(ptsAt(ref - 28));
+      // Vs its normal: signal pace over the last 4 weeks compared with its own usual 4-week pace
+      // over the 26 weeks before that. Loud, always-on topics read "Normal" at their usual level.
+      const inWin = (a, b) => sig.filter((r) => ref - day(r.date) >= a && ref - day(r.date) < b).reduce((s, r) => s + Math.max(0, weight[r.heat] ?? 0), 0);
+      const recentPace = inWin(0, 28), usual = inWin(28, 210) / 6.5;
+      const vs_normal = usual < 0.5 ? null : Math.round((recentPace / usual) * 10) / 10;
+      const normal_word = vs_normal == null ? 'New, no normal yet' : vs_normal >= 2 ? 'Way above normal' : vs_normal >= 1.25 ? 'Above normal' : vs_normal > 0.8 ? 'Normal' : 'Below normal';
+      // Real-world impact: share of its heat from action (money moved, hiring, laws, contracts, launches)
+      // rather than talk (statements, coverage, buzz). Uses the collector's tag, or the signal type for older signals.
+      const ACTION = ['Funding', 'Stocks', 'Jobs', 'World events', 'Politics'];
+      const isAction = (r) => (r.kind ? r.kind === 'action' : ACTION.includes(r.category));
+      let act = 0, all = 0;
+      sig.forEach((r) => { const w = Math.max(0, weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90); all += w; if (isAction(r)) act += w; });
+      const impact = all > 0 ? Math.round((act / all) * 100) : 0;
+      const impact_word = impact >= 60 ? 'Mostly real action' : impact >= 35 ? 'Mix of action and talk' : 'Mostly talk';
+      return { field, stage, heat: score(pts), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone, change_4w, vs_normal, normal_word, impact, impact_word, impact_score: Math.round(score(pts) * impact / 100) };
     });
   },
 });

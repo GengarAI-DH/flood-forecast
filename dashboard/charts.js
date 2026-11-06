@@ -225,6 +225,20 @@
   // Heat is a fixed 0 to 100 scale. It can't go above 100, and the bands mean the same every day.
   const heatWord = (v) => (v < 0 ? 'crowding' : v < 20 ? 'quiet' : v < 40 ? 'warming' : v < 60 ? 'hot' : v < 80 ? 'very hot' : 'red-hot');
   const heatTxt = (v) => `${d3.format('.0f')(v)} (${heatWord(v)})`;
+  const arrowTxt = (c) => (c == null ? '' : c >= 2 ? `↑${d3.format('.0f')(c)}` : c <= -2 ? `↓${d3.format('.0f')(-c)}` : '→');
+  // One legend for heat, used wherever heat shows: the same bands every day.
+  const heatStrip = () => {
+    const box = document.createElement('div'); box.className = 'heatstrip';
+    const bar = document.createElement('div'); bar.className = 'hs-bar';
+    ['quiet', 'warming', 'hot', 'very hot', 'red-hot'].forEach((w) => { const s = document.createElement('span'); s.textContent = w; bar.appendChild(s); });
+    box.appendChild(bar);
+    const lab = document.createElement('div'); lab.className = 'hs-lab';
+    [0, 20, 40, 60, 80, 100].forEach((n) => { const s = document.createElement('span'); s.style.left = `${n}%`; s.textContent = String(n); lab.appendChild(s); });
+    box.appendChild(lab);
+    const note = document.createElement('div'); note.className = 'hs-note'; note.textContent = 'Heat scale. It never goes past 100. ↑ / ↓ is the change over 4 weeks.';
+    box.appendChild(note);
+    return box;
+  };
   const ZONE = { 'Get in early': 'var(--color-ok)', 'Hot now': 'var(--color-warn)', 'Crowded': 'var(--color-bad)', 'Fading': 'var(--cds-chart-muted)' };
   document.querySelectorAll('.sw.zone').forEach((s) => { s.style.background = ZONE[s.dataset.z]; });
 
@@ -308,18 +322,38 @@
     badge.append('circle').attr('r', 7).style('fill', (d) => (BIG[wOf(d.field).status] === 'good' ? 'var(--color-ok)' : 'var(--color-bad)')).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
     badge.append('text').attr('text-anchor', 'middle').attr('dy', '0.36em').attr('fill', '#fff').style('font-size', '11px').style('font-weight', 700).text('!');
     // Phone view: numbers inside the bubbles plus a ranked key under the map, instead of crowded labels.
-    const rankOf = new Map(pts.slice().sort((a, b) => b.heat - a.heat).map((d, i) => [d.field, i + 1]));
+    // Ranking: real-world impact by default, so always-loud talk doesn't crowd out what moves money, jobs and policy.
+    const SORTS = { impact: ['Real-world impact', (a, b) => b.impact_score - a.impact_score || b.heat - a.heat],
+      rising: ['Rising fastest', (a, b) => (b.vs_normal ?? 0) - (a.vs_normal ?? 0) || b.change_4w - a.change_4w],
+      hottest: ['Hottest', (a, b) => b.heat - a.heat] };
+    const sortKey = SORTS[dash.params().rank] ? dash.params().rank : 'impact';
+    const rankedAll = pts.slice().sort(SORTS[sortKey][1]);
+    const rankOf = new Map(rankedAll.map((d, i) => [d.field, i + 1]));
     const bnum = bubs.append('text').attr('class', 'bnum').attr('text-anchor', 'middle').attr('dy', '0.35em').attr('pointer-events', 'none')
       .style('font-size', (d) => (d.rr < 9 ? '8px' : '10px')).text((d) => rankOf.get(d.field));
+    el.appendChild(heatStrip());
     const key = document.createElement('div'); key.className = 'mapkey'; el.appendChild(key);
     const buildKey = () => {
-      const ranked = pts.slice().sort((a, b) => b.heat - a.heat);
+      const ranked = rankedAll;
+      const chips = document.createElement('div'); chips.className = 'mk-sorts'; chips.setAttribute('role', 'group'); chips.setAttribute('aria-label', 'Rank trends by');
+      const lead = document.createElement('span'); lead.className = 'mk-sortlead'; lead.textContent = 'Rank by'; chips.appendChild(lead);
+      Object.entries(SORTS).forEach(([k2, [label]]) => {
+        const c = document.createElement('button'); c.type = 'button'; c.className = 'chipbtn'; c.textContent = label;
+        c.setAttribute('aria-pressed', String(k2 === sortKey));
+        c.addEventListener('click', () => dash.setParams({ rank: k2 === 'impact' ? null : k2 }));
+        chips.appendChild(c);
+      });
+      key.appendChild(chips);
       const list = document.createElement('ol'); list.className = 'mapkey-list';
       ranked.forEach((d, i) => {
         const li = document.createElement('li'); li.className = 'tlink'; li.dataset.trend = d.field;
         if (i >= 8) li.classList.add('mk-extra', 'is-off');
         const n = document.createElement('span'); n.className = 'mk-n'; n.style.background = ZONE[d.zone]; n.textContent = rankOf.get(d.field); li.appendChild(n);
-        const nm = document.createElement('span'); nm.className = 'mk-name'; nm.textContent = d.field; li.appendChild(nm);
+        const nm = document.createElement('span'); nm.className = 'mk-name';
+        const nt = document.createElement('span'); nt.className = 'mk-title'; nt.textContent = d.field; nm.appendChild(nt);
+        const sub = document.createElement('span'); sub.className = 'mk-sub';
+        sub.textContent = `${heatWord(d.heat)} ${arrowTxt(d.change_4w)} · ${d.impact_word.toLowerCase()}${d.vs_normal == null ? '' : ` · ${d.normal_word.toLowerCase()}`}`;
+        nm.appendChild(sub); li.appendChild(nm);
         const w = wOf(d.field);
         if (w && BIG[w.status]) { const bx = document.createElement('span'); bx.className = 'wbang'; bx.style.background = BIG[w.status] === 'good' ? 'var(--color-ok)' : 'var(--color-bad)'; bx.textContent = '!'; li.appendChild(bx); }
         else if (w && !window.ffWatchBtn) { const st = document.createElement('span'); st.className = 'mk-star'; st.textContent = '★'; st.setAttribute('aria-label', 'Watching'); li.appendChild(st); }
@@ -611,7 +645,7 @@
   dash.draw('tdname', (el) => setText(el, picked() || '—'));
   dash.draw('tdstats', (el) => {
     const m = rows('map').find((r) => r.field === picked());
-    setText(el, m ? `${m.zone} · stage ${m.stage} of 6 · heat ${heatTxt(m.heat)} · ${m.signals} signal${m.signals === 1 ? '' : 's'}` : (picked() ? 'No live signals for this one yet.' : '—'));
+    setText(el, m ? `Heat ${heatTxt(m.heat)} ${arrowTxt(m.change_4w)} in 4 weeks · ${m.zone} · stage ${m.stage} of 6 · ${m.signals} signal${m.signals === 1 ? '' : 's'} · ${m.impact}% real-world action (${m.impact_word.toLowerCase()}) · vs its normal: ${m.vs_normal == null ? 'too new to tell' : `${m.normal_word.toLowerCase()} (${d3.format('.1f')(m.vs_normal)}× its usual pace)`}` : (picked() ? 'No live signals for this one yet.' : '—'));
   });
   dash.draw('tdwhy', (el) => {
     const f = picked(); if (!f) { setText(el, '—'); return; }
