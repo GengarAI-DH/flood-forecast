@@ -178,3 +178,7 @@
 .ff .calllist .pill { flex: none; }
 .ff .sw.zone.sq { border-radius: 3px; opacity: 0.55; }
 .ff .lglead { color: var(--color-fg-muted); }
+.ff .mk-how { margin: 2px 0 8px; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); line-height: 1.45; }
+.ff .mk-heat { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.1; min-width: 4ch; }
+.ff .mk-heat b { font-weight: 500; color: var(--color-fg); }
+.ff .mk-heat small { font-size: 10px; }

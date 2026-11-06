@@ -379,6 +379,13 @@
         chips.appendChild(c);
       });
       key.appendChild(chips);
+      // Say in plain words how this ranking works, using the top two as the example.
+      const how = document.createElement('p'); how.className = 'mk-how';
+      const [a1, a2] = ranked;
+      if (sortKey === 'impact') how.textContent = `Impact = heat × the share of it that's real action (money moved, hiring, laws, launches) rather than talk.${a1 && a2 ? ` ${a1.field}: heat ${a1.heat} × ${a1.impact}% action = ${a1.impact_score}. ${a2.field}: heat ${a2.heat} × ${a2.impact}% action = ${a2.impact_score}.` : ''}`;
+      else if (sortKey === 'rising') how.textContent = ranked.some((d) => d.vs_normal != null) ? 'Ranked by how its last 4 weeks compare with its own usual pace. 2× means twice its normal. Trends too new to have a normal are ranked by their 4-week change.' : 'Ranked by the change in heat over the last 4 weeks. Once trends have a few months of history, this ranks them against their own normal pace instead, so always-loud topics don\'t win just by being loud.';
+      else how.textContent = 'Ranked by heat alone: how much strong, fresh evidence there is right now, whether it\'s action or talk.';
+      key.appendChild(how);
       const list = document.createElement('ol'); list.className = 'mapkey-list';
       ranked.forEach((d, i) => {
         const li = document.createElement('li'); li.className = 'tlink'; li.dataset.trend = d.field;
@@ -387,12 +394,18 @@
         const nm = document.createElement('span'); nm.className = 'mk-name';
         const nt = document.createElement('span'); nt.className = 'mk-title'; nt.textContent = d.field; nm.appendChild(nt);
         const sub = document.createElement('span'); sub.className = 'mk-sub';
-        sub.textContent = `${heatWord(d.heat)} ${arrowTxt(d.change_4w)} · ${d.impact_word.toLowerCase()}${d.vs_normal == null ? '' : ` · ${d.normal_word.toLowerCase()}`}`;
+        sub.textContent = `heat ${d3.format('.0f')(d.heat)} ${heatWord(d.heat)} ${arrowTxt(d.change_4w)} · ${d.impact}% real action${d.vs_normal == null ? '' : ` · ${d.normal_word.toLowerCase()}`}`;
         nm.appendChild(sub); li.appendChild(nm);
         const w = wOf(d.field);
         if (w && BIG[w.status]) { const bx = document.createElement('span'); bx.className = 'wbang'; bx.style.background = BIG[w.status] === 'good' ? 'var(--color-ok)' : 'var(--color-bad)'; bx.textContent = '!'; li.appendChild(bx); }
         else if (w && !window.ffWatchBtn) { const st = document.createElement('span'); st.className = 'mk-star'; st.textContent = '★'; st.setAttribute('aria-label', 'Watching'); li.appendChild(st); }
-        const h = document.createElement('span'); h.className = 'mk-heat'; h.textContent = d3.format('.0f')(d.heat); li.appendChild(h);
+        // The number on the right is whatever the list is ranked by, with a small label.
+        const h = document.createElement('span'); h.className = 'mk-heat';
+        const hv = document.createElement('b'); const hl = document.createElement('small');
+        if (sortKey === 'impact') { hv.textContent = d3.format('.0f')(d.impact_score); hl.textContent = 'impact'; }
+        else if (sortKey === 'rising') { hv.textContent = d.vs_normal == null ? arrowTxt(d.change_4w) : `${d3.format('.1f')(d.vs_normal)}×`; hl.textContent = d.vs_normal == null ? '4 weeks' : 'vs normal'; }
+        else { hv.textContent = d3.format('.0f')(d.heat); hl.textContent = 'heat'; }
+        h.append(hv, hl); li.appendChild(h);
         if (window.ffWatchBtn) li.appendChild(window.ffWatchBtn(d.field));
         list.appendChild(li);
       });
