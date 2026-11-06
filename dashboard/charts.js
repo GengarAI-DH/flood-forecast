@@ -258,6 +258,8 @@
   // Heat is a fixed 0 to 100 scale. It can't go above 100, and the bands mean the same every day.
   const heatWord = (v) => (v < 0 ? 'crowding' : v < 20 ? 'quiet' : v < 40 ? 'warming' : v < 60 ? 'hot' : v < 80 ? 'very hot' : 'red-hot');
   const heatTxt = (v) => `${d3.format('.0f')(v)} (${heatWord(v)})`;
+  // One color per heat band, the same everywhere (matches the heat strip).
+  const HEATC = (v) => (v < 0 ? '#5d6b7a' : v < 20 ? '#7d838c' : v < 40 ? '#b8962e' : v < 60 ? '#d07a22' : v < 80 ? '#c4502a' : '#a3231c');
   const arrowTxt = (c) => (c == null ? '' : c >= 2 ? `↑${d3.format('.0f')(c)}` : c <= -2 ? `↓${d3.format('.0f')(-c)}` : '→');
   // One legend for heat, used wherever heat shows: the same bands every day.
   const heatStrip = () => {
@@ -304,7 +306,7 @@
     });
     const view = svg.append('g').attr('clip-path', `url(#${clipId})`);
     const bands = [[0.5, 2.5, 'Get in early'], [2.5, 4.5, 'Hot now'], [4.5, 6.5, 'Crowded']];
-    const bandSel = view.append('g').selectAll('rect').data(bands).join('rect').style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.07).attr('y', m.t).attr('height', H - m.b - m.t);
+    const bandSel = view.append('g').selectAll('rect').data(bands).join('rect').style('fill', (b) => ZONE[b[2]]).attr('fill-opacity', 0.13).attr('y', m.t).attr('height', H - m.b - m.t);
     const zero = view.append('line').attr('stroke', 'var(--cds-chart-reference)').attr('stroke-dasharray', '4 3');
     // Corner guides: what each part of the map means.
     const cg = view.append('g').attr('class', 'cornerguide').attr('fill', 'var(--color-fg-muted)').attr('fill-opacity', 0.75).style('font-size', 'var(--cds-font-size-caption)').attr('pointer-events', 'none');
@@ -345,8 +347,8 @@
     svg.append('defs').append('filter').attr('id', 'ffglow').attr('x', '-60%').attr('y', '-60%').attr('width', '220%').attr('height', '220%')
       .append('feGaussianBlur').attr('stdDeviation', 4);
     bubs.filter((d) => !!wOf(d.field)).append('circle').attr('class', 'glow').attr('r', (d) => d.rr + 5)
-      .style('fill', (d) => ZONE[d.zone]).attr('fill-opacity', 0.75).attr('filter', 'url(#ffglow)').attr('pointer-events', 'none');
-    bubs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => ZONE[d.zone])
+      .style('fill', (d) => HEATC(d.heat)).attr('fill-opacity', 0.75).attr('filter', 'url(#ffglow)').attr('pointer-events', 'none');
+    bubs.append('circle').attr('r', (d) => d.rr).style('fill', (d) => HEATC(d.heat))
       .attr('fill-opacity', (d) => (lensOn ? (fitOf(d.field) == null ? 0.12 : 0.12 + 0.8 * fitOf(d.field) / 10) : 0.78))
       .attr('stroke', (d) => (lensOn && fitOf(d.field) >= 7 ? 'var(--color-fg)' : 'var(--color-panel)')).attr('stroke-width', (d) => (lensOn && fitOf(d.field) >= 7 ? 3 : 2));
     bubs.attr('opacity', (d) => (lensOn && !(fitOf(d.field) >= 4) ? 0.45 : 1));
@@ -381,7 +383,7 @@
       ranked.forEach((d, i) => {
         const li = document.createElement('li'); li.className = 'tlink'; li.dataset.trend = d.field;
         if (i >= 8) li.classList.add('mk-extra', 'is-off');
-        const n = document.createElement('span'); n.className = 'mk-n'; n.style.background = ZONE[d.zone]; n.textContent = rankOf.get(d.field); li.appendChild(n);
+        const n = document.createElement('span'); n.className = 'mk-n'; n.style.background = HEATC(d.heat); n.textContent = rankOf.get(d.field); li.appendChild(n);
         const nm = document.createElement('span'); nm.className = 'mk-name';
         const nt = document.createElement('span'); nt.className = 'mk-title'; nt.textContent = d.field; nm.appendChild(nt);
         const sub = document.createElement('span'); sub.className = 'mk-sub';
@@ -782,7 +784,7 @@
     const order = { 'Becoming a problem': 0, 'Trending harder': 1, 'Cooling off': 2, 'Steady': 3, 'No new data': 4 };
     list.slice().sort((a, b) => order[a.status] - order[b.status]).forEach((w) => {
       const c = document.createElement('div'); c.className = 'wcard';
-      const zc = ZONE[w.now_zone] || 'var(--color-border-line)';
+      const zc = w.now_heat == null ? 'var(--color-border-line)' : HEATC(w.now_heat);
       c.style.borderColor = zc; c.style.boxShadow = `0 0 14px -2px ${zc}`;
       const big = { 'Trending harder': 'var(--color-ok)', 'Cooling off': 'var(--color-bad)', 'Becoming a problem': 'var(--color-bad)' }[w.status];
       const top = document.createElement('div'); top.className = 'wtop';

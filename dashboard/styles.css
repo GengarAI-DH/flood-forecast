@@ -176,3 +176,5 @@
 .ff .calllist li { display: flex; gap: 10px; align-items: baseline; padding: 6px 0; border-bottom: 1px solid var(--color-border-line); font-size: var(--cds-font-size-caption); }
 .ff .calllist li:last-child { border-bottom: 0; }
 .ff .calllist .pill { flex: none; }
+.ff .sw.zone.sq { border-radius: 3px; opacity: 0.55; }
+.ff .lglead { color: var(--color-fg-muted); }
