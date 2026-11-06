@@ -1,7 +1,7 @@
 // Runtime: loads the data files and provides the small `dash` API the page scripts use
 // (data, calc, draw, params). Lets the same chart code run on its own website.
 (() => {
-  const DATASETS = ['radar', 'stages', 'forecasts', 'backtest', 'model', 'edges', 'accuracy', 'risk', 'clock', 'odds', 'briefs', 'people', 'riskinfo'];
+  const DATASETS = ['radar', 'stages', 'forecasts', 'backtest', 'model', 'edges', 'accuracy', 'risk', 'clock', 'odds', 'briefs', 'people', 'riskinfo', 'tuning', 'calls', 'flashes'];
   const DATA = {};
   const calcs = {};
   const draws = {};

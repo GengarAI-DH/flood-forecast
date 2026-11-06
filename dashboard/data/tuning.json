@@ -1,0 +1,12 @@
+[
+ {
+  "at": "2026-11-05",
+  "weight_hot": 1,
+  "weight_building": 0.5,
+  "weight_crowding": -0.5,
+  "half_life_days": 90,
+  "calls_scored": 0,
+  "hit_rate": null,
+  "reason": "Starting settings, before any live calls were checked."
+ }
+]

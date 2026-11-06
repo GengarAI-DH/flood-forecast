@@ -32,7 +32,9 @@
     const radar = rows('radar'), m = one('model') || {}, edges = rows('edges'), acc = rows('accuracy'), proj = rows('projection');
     const fields = new Set(radar.map((r) => r.field)).size;
     const relearned = edges.filter((e) => e.basis && !/starting/i.test(e.basis)).length;
-    const live = acc.filter((a) => !/backtest/i.test(a.method || ''));
+    const calls = rows('calls') || [], scored = calls.filter((c) => c.result === 'right' || c.result === 'wrong');
+    const right = scored.filter((c) => c.result === 'right').length;
+    const flashes = rows('flashes') || [];
     const p0 = proj[0] || {};
     const lvl = (n) => (n >= 3 ? ['Solid', 'var(--color-ok)'] : n === 2 ? ['Fair', 'var(--color-warn)'] : ['Low for now', 'var(--color-bad)']);
     const items = [
@@ -46,8 +48,10 @@
         'Published estimates from tested forecasters and expert surveys, each linked to its source. Experts disagree widely, and nobody can check these until it\'s too late.'],
       ['Influence arrows', relearned >= Math.max(1, edges.length * 0.75) ? 2 : 1,
         `${relearned} of ${edges.length} arrows have been relearned from our own data so far. They show what tends to happen first, not proof that one thing causes another.`],
-      ['Live track record', live.length >= 8 ? 3 : live.length >= 2 ? 2 : 1,
-        live.length ? `${live.length} weekly checks so far, latest hit rate ${d3.format('.0%')(live[live.length - 1].hit_rate)}.` : 'No live calls checked yet. The first weekly check comes once calls are 30 days old. Until then the only test is the backtest on past trends.'],
+      ['Live track record', scored.length >= 100 && right / scored.length >= 0.7 ? 3 : scored.length >= 30 ? 2 : 1,
+        scored.length ? `${right} of ${scored.length} checked calls came true (${d3.format('.0%')(right / scored.length)}). A coin flip would get about half. The goal is 75 to 85%.` : `No calls checked yet. The collector logs calls every week and checks each one 30 days later. ${calls.length ? `${calls.length} waiting to be checked.` : 'The first ones get logged on the next weekly run.'}`],
+      ['One-off spikes caught', flashes.length >= 10 ? 3 : flashes.length >= 3 ? 2 : 1,
+        flashes.length ? `${flashes.length} trends spiked and then went nowhere within 30 days. The collector studies what those spikes looked like and trusts that pattern less next time.` : 'None yet. When a trend spikes and nothing follows within 30 days, it gets labeled a one-off and its pattern is studied.'],
     ];
     items.forEach(([name, n, why]) => {
       const [word, c] = lvl(n);
@@ -59,6 +63,35 @@
       const p = document.createElement('p'); p.className = 'twhy'; p.textContent = why; li.appendChild(p);
       ul.appendChild(li);
     });
+  });
+
+  // The call log: what the app predicted, and whether it came true.
+  dash.draw('callslist', (el) => {
+    el.replaceChildren();
+    const calls = (rows('calls') || []).slice().sort((a, b) => (a.made < b.made ? 1 : -1));
+    const tune = rows('tuning') || [];
+    const scored = calls.filter((c) => c.result === 'right' || c.result === 'wrong');
+    const right = scored.filter((c) => c.result === 'right').length;
+    const sum = document.createElement('p'); sum.className = 'lede';
+    sum.textContent = scored.length ? `${right} of ${scored.length} checked calls came true (${d3.format('.0%')(right / scored.length)}). ${calls.length - scored.length} still waiting for their 30 days.`
+      : calls.length ? `${calls.length} calls logged, none old enough to check yet. Each gets checked 30 days after it was made.` : 'No calls logged yet. Every week the collector writes down a call for each trend, like "hotter in 30 days", then checks it 30 days later. Right and wrong both show up here.';
+    el.appendChild(sum);
+    if (calls.length) {
+      const ul = document.createElement('ul'); ul.className = 'calllist';
+      calls.slice(0, 12).forEach((c) => {
+        const li = document.createElement('li');
+        const st = document.createElement('span'); st.className = 'pill';
+        st.textContent = c.result === 'right' ? '✓ Right' : c.result === 'wrong' ? '✗ Wrong' : 'Waiting';
+        st.style.color = c.result === 'right' ? 'var(--color-ok)' : c.result === 'wrong' ? 'var(--color-bad)' : 'var(--color-fg-muted)';
+        const t = document.createElement('span'); t.className = 'ctext';
+        const nm = document.createElement('span'); nm.className = 'tlink'; nm.dataset.trend = c.field; nm.textContent = c.field;
+        t.append(nm, `: ${c.detail || c.call} (made ${c.made}, check ${c.due})`);
+        li.append(st, t); ul.appendChild(li);
+      });
+      el.appendChild(ul);
+    }
+    const last = tune[tune.length - 1];
+    if (last) { const p = document.createElement('p'); p.className = 'note'; p.textContent = `Settings last tuned ${last.at}: ${last.reason}`; el.appendChild(p); }
   });
 
   dash.draw('ftable', (tb) => {
@@ -645,7 +678,7 @@
   dash.draw('tdname', (el) => setText(el, picked() || '—'));
   dash.draw('tdstats', (el) => {
     const m = rows('map').find((r) => r.field === picked());
-    setText(el, m ? `Heat ${heatTxt(m.heat)} ${arrowTxt(m.change_4w)} in 4 weeks · ${m.zone} · stage ${m.stage} of 6 · ${m.signals} signal${m.signals === 1 ? '' : 's'} · ${m.impact}% real-world action (${m.impact_word.toLowerCase()}) · vs its normal: ${m.vs_normal == null ? 'too new to tell' : `${m.normal_word.toLowerCase()} (${d3.format('.1f')(m.vs_normal)}× its usual pace)`}` : (picked() ? 'No live signals for this one yet.' : '—'));
+    setText(el, m ? `Heat ${heatTxt(m.heat)} ${arrowTxt(m.change_4w)} in 4 weeks · ${m.zone} · stage ${m.stage} of 6 · ${m.signals} signal${m.signals === 1 ? '' : 's'} from ${m.outlets} different outlet${m.outlets === 1 ? ' (only one source so far)' : 's'} · ${m.impact}% real-world action (${m.impact_word.toLowerCase()}) · vs its normal: ${m.vs_normal == null ? 'too new to tell' : `${m.normal_word.toLowerCase()} (${d3.format('.1f')(m.vs_normal)}× its usual pace)`}` : (picked() ? 'No live signals for this one yet.' : '—'));
   });
   dash.draw('tdwhy', (el) => {
     const f = picked(); if (!f) { setText(el, '—'); return; }

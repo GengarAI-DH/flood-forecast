@@ -1,6 +1,6 @@
 import json,os,sys
 D="/home/claude/data"
-names=["stages","forecasts","backtest","model","edges","accuracy","risk","clock","odds","briefs","watchlist","alerts","people","riskinfo","fit"]
+names=["stages","forecasts","backtest","model","edges","accuracy","risk","clock","odds","briefs","watchlist","alerts","people","riskinfo","fit","tuning","calls","flashes"]
 data={n:json.load(open(f"{D}/{n}.json")) for n in names}
 data["radar"]=json.load(open("radar.json"))
 page=open(sys.argv[1] if len(sys.argv)>1 else f"{D}/index.html").read()

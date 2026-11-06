@@ -286,6 +286,11 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <div class="info" hidden><p><b>How to read it:</b> Each part of the app gets a plain rating, worked out from the live numbers: how much data is behind it and how well it has done when checked.</p><p><b>What it's for:</b> So you know which numbers to lean on and which to treat as a rough guide.</p><p><b>Watch for:</b> Ratings move up as the collector gathers more signals and the weekly accuracy checks come in.</p></div>
       <ul class="trustlist" data-draw="trustbox" data-source="radar"></ul>
     </section>
+        <section class="card" id="calls">
+      <div class="cardhead"><h2>Track record: calls and how they turned out</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Every week the collector writes down a clear call for each trend, like "hotter in 30 days" or "moves into crowded". 30 days later it checks what actually happened and marks it right or wrong. Nothing gets edited after the fact.</p><p><b>What it's for:</b> This is how the app learns. Once a month it adjusts its own settings, like how much each kind of signal counts and how fast heat fades, toward whatever would have made past calls more accurate. Every change is logged here.</p><p><b>Watch for:</b> A coin flip gets about half right. The goal is 75 to 85% over time. Expect a few months of calls before the number means much.</p></div>
+      <div data-draw="callslist" data-source="calls"></div>
+    </section>
     <section class="tiles" id="tiles">
       <div class="card tile"><span class="label">Robotics technician gets crowded around</span><span class="num" data-draw="t_robot" data-source="forecasts" data-field="flood_year" data-where="field=Robotics%20technician">—</span></div>
       <div class="card tile"><span class="label">Agentic AI engineer gets crowded around</span><span class="num" data-draw="t_agent" data-source="forecasts" data-field="flood_year" data-where="field=Agentic%20AI%20engineer">—</span></div>

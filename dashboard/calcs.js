@@ -31,12 +31,14 @@ dash.calc('consensus', {
 });
 
 dash.calc('projection', {
-  inputs: ['radar', 'accuracy'],
+  inputs: ['radar', 'accuracy', 'tuning'],
   title: 'Heat forecast',
-  description: 'Weekly heat per trend projected forward: today\'s signals fading by half every 90 days, plus new signals arriving at the trend\'s average weekly pace over the last 26 weeks, with an 80% range from how uneven that pace has been. How far ahead it reaches grows with the weeks of history collected and with the latest hit rate, up to five years.',
-  fn: (radar, accuracy) => {
+  description: 'Weekly heat per trend projected forward: today\'s signals fading by half every 90 days by default (self-tuned over time), plus new signals arriving at the trend\'s average weekly pace over the last 26 weeks, with an 80% range from how uneven that pace has been. How far ahead it reaches grows with the weeks of history collected and with the latest hit rate, up to five years.',
+  fn: (radar, accuracy, tuning) => {
     const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
-    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const tu = tuning && tuning.length ? tuning[tuning.length - 1] : {}; // latest self-tuned settings (see the tuning dataset)
+    const weight = { 3: tu.weight_hot ?? 1, 2: tu.weight_building ?? 0.5, 1: tu.weight_crowding ?? -0.5 };
+    const HL = tu.half_life_days || 90; // days for a signal to lose half its heat
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const first = Math.min(...radar.map((r) => day(r.date)));
@@ -51,13 +53,13 @@ dash.calc('projection', {
       const hist = [];
       for (let w = spanWeeks; w >= 0; w--) {
         const t = ref - w * 7;
-        hist.push(sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0));
+        hist.push(sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / HL), 0));
       }
       // Forecast = what today's signals fade to (they lose half their heat every 90 days, so this
       // part is certain) + new signals arriving at this trend's usual weekly pace over the last
       // 26 weeks. Using the long-run pace keeps a short burst of fresh signals from being
       // stretched into a runaway line. The band is the 80% range from how uneven that pace has been.
-      const decay = Math.pow(0.5, 7 / 90);
+      const decay = Math.pow(0.5, 7 / HL);
       const weeksBack = Math.min(26, spanWeeks);
       const inflow = [];
       for (let w = weeksBack - 1; w >= 0; w--) {
@@ -82,12 +84,14 @@ dash.calc('projection', {
 });
 
 dash.calc('map', {
-  inputs: ['radar'],
+  inputs: ['radar', 'tuning'],
   title: 'Trend map',
   description: 'For each trend: how far along its lifecycle it is, its heat now on the fixed 0 to 100 scale, its change over 4 weeks, how its last 4 weeks compare with its own usual pace (vs normal), and how much of its heat is real-world action rather than talk (impact).',
-  fn: (radar) => {
+  fn: (radar, tuning) => {
     const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
-    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const tu = tuning && tuning.length ? tuning[tuning.length - 1] : {}; // latest self-tuned settings (see the tuning dataset)
+    const weight = { 3: tu.weight_hot ?? 1, 2: tu.weight_building ?? 0.5, 1: tu.weight_crowding ?? -0.5 };
+    const HL = tu.half_life_days || 90; // days for a signal to lose half its heat
     const order = ['Tech emerges', 'Funding boom', 'Job spike', 'Courses boom', 'Content flood', 'Flooded'];
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
@@ -95,10 +99,10 @@ dash.calc('map', {
       const sig = radar.filter((r) => r.field === field);
       const recent = sig.filter((r) => ref - day(r.date) <= 365);
       const stage = Math.max(1, ...recent.map((r) => order.indexOf(r.stage) + 1));
-      const pts = sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
+      const pts = sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / HL), 0);
       const zone = pts <= 0 ? 'Fading' : stage <= 2 ? 'Get in early' : stage <= 4 ? 'Hot now' : 'Crowded';
       // Change over the last 4 weeks on the same scale.
-      const ptsAt = (t) => sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0);
+      const ptsAt = (t) => sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / HL), 0);
       const change_4w = score(pts) - score(ptsAt(ref - 28));
       // Vs its normal: signal pace over the last 4 weeks compared with its own usual 4-week pace
       // over the 26 weeks before that. Loud, always-on topics read "Normal" at their usual level.
@@ -111,29 +115,32 @@ dash.calc('map', {
       const ACTION = ['Funding', 'Stocks', 'Jobs', 'World events', 'Politics'];
       const isAction = (r) => (r.kind ? r.kind === 'action' : ACTION.includes(r.category));
       let act = 0, all = 0;
-      sig.forEach((r) => { const w = Math.max(0, weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90); all += w; if (isAction(r)) act += w; });
+      sig.forEach((r) => { const w = Math.max(0, weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / HL); all += w; if (isAction(r)) act += w; });
       const impact = all > 0 ? Math.round((act / all) * 100) : 0;
       const impact_word = impact >= 60 ? 'Mostly real action' : impact >= 35 ? 'Mix of action and talk' : 'Mostly talk';
-      return { field, stage, heat: score(pts), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone, change_4w, vs_normal, normal_word, impact, impact_word, impact_score: Math.round(score(pts) * impact / 100) };
+      const outlets = new Set(sig.map((r) => (r.source || '').trim().toLowerCase()).filter(Boolean)).size;
+      return { field, outlets, stage, heat: score(pts), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone, change_4w, vs_normal, normal_word, impact, impact_word, impact_score: Math.round(score(pts) * impact / 100) };
     });
   },
 });
 
 window.FF_CATS = ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'];
 dash.calc('grid', {
-  inputs: ['radar'],
+  inputs: ['radar', 'tuning'],
   title: 'Heat by field and type',
   description: 'Heat now for every field and signal type, on the same fixed 0 to 100 heat scale as the trends.',
-  fn: (radar) => {
+  fn: (radar, tuning) => {
     const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
-    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const tu = tuning && tuning.length ? tuning[tuning.length - 1] : {}; // latest self-tuned settings (see the tuning dataset)
+    const weight = { 3: tu.weight_hot ?? 1, 2: tu.weight_building ?? 0.5, 1: tu.weight_crowding ?? -0.5 };
+    const HL = tu.half_life_days || 90; // days for a signal to lose half its heat
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const out = [];
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].forEach((category) => {
         const h = radar.filter((r) => r.field === field && r.category === category)
-          .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
+          .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / HL), 0);
         out.push({ field, category, heat: score(h), heat_pts: Math.round(h * 100) / 100 });
       });
     });
@@ -141,17 +148,19 @@ dash.calc('grid', {
   },
 });
 dash.calc('cats', {
-  inputs: ['radar'],
+  inputs: ['radar', 'tuning'],
   title: 'Heat by signal type',
   description: 'Total heat per signal type across all fields, same scoring and 90-day fade, shown as each type\'s share of all heat (the shares add up to 100%).',
-  fn: (radar) => {
-    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+  fn: (radar, tuning) => {
+    const tu = tuning && tuning.length ? tuning[tuning.length - 1] : {}; // latest self-tuned settings (see the tuning dataset)
+    const weight = { 3: tu.weight_hot ?? 1, 2: tu.weight_building ?? 0.5, 1: tu.weight_crowding ?? -0.5 };
+    const HL = tu.half_life_days || 90; // days for a signal to lose half its heat
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const rows = ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].map((category) => ({
       category,
       pts: radar.filter((r) => r.category === category)
-        .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0),
+        .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / HL), 0),
       signals: radar.filter((r) => r.category === category).length,
     }));
     // Share of all heat: what slice of the total each signal type is contributing (adds up to 100%).
@@ -160,12 +169,14 @@ dash.calc('cats', {
   },
 });
 dash.calc('trend', {
-  inputs: ['radar'],
+  inputs: ['radar', 'tuning'],
   title: 'Heat over the last year',
   description: 'Heat per field at the end of each of the last 52 weeks, counting only signals dated by then.',
-  fn: (radar) => {
+  fn: (radar, tuning) => {
     const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
-    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const tu = tuning && tuning.length ? tuning[tuning.length - 1] : {}; // latest self-tuned settings (see the tuning dataset)
+    const weight = { 3: tu.weight_hot ?? 1, 2: tu.weight_building ?? 0.5, 1: tu.weight_crowding ?? -0.5 };
+    const HL = tu.half_life_days || 90; // days for a signal to lose half its heat
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const out = [];
@@ -173,7 +184,7 @@ dash.calc('trend', {
       for (let w = 51; w >= 0; w--) {
         const t = ref - w * 7;
         const h = radar.filter((r) => r.field === field && day(r.date) <= t)
-          .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0);
+          .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / HL), 0);
         out.push({ field, week: new Date(t * 864e5).toISOString().slice(0, 10), heat: score(h) });
       }
     });
@@ -244,12 +255,14 @@ dash.calc('digest', {
 });
 
 dash.calc('heat', {
-  inputs: ['radar', 'edges'],
+  inputs: ['radar', 'edges', 'tuning'],
   title: 'Heat by field',
   description: 'Each signal adds heat that fades by half every 90 days, then heat flows along the influence edges (one and two steps) into jobs and courses.',
-  fn: (radar, edges) => {
+  fn: (radar, edges, tuning) => {
     const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
-    const weight = { 3: 1, 2: 0.5, 1: -0.5 };
+    const tu = tuning && tuning.length ? tuning[tuning.length - 1] : {}; // latest self-tuned settings (see the tuning dataset)
+    const weight = { 3: tu.weight_hot ?? 1, 2: tu.weight_building ?? 0.5, 1: tu.weight_crowding ?? -0.5 };
+    const HL = tu.half_life_days || 90; // days for a signal to lose half its heat
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const fields = [...new Set(radar.map((r) => r.field))];
@@ -257,7 +270,7 @@ dash.calc('heat', {
     return fields.map((field) => {
       const node = {};
       radar.filter((r) => r.field === field).forEach((r) => {
-        node[r.category] = (node[r.category] || 0) + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90);
+        node[r.category] = (node[r.category] || 0) + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / HL);
       });
       const flow = (to) => into(to).reduce((s, e) => s + e.strength * (node[e.from] || 0)
         + 0.5 * into(e.from).reduce((s2, e2) => s2 + e2.strength * e.strength * (node[e2.from] || 0), 0), 0);
