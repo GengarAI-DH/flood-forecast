@@ -33,7 +33,7 @@ dash.calc('consensus', {
 dash.calc('projection', {
   inputs: ['radar', 'accuracy'],
   title: 'Heat forecast',
-  description: 'Weekly heat per trend projected forward with a damped trend line. How far ahead it reaches grows with the weeks of history collected (half as far ahead as there is history) and with the latest hit rate, up to five years.',
+  description: 'Weekly heat per trend projected forward: today\'s signals fading by half every 90 days, plus new signals arriving at the trend\'s average weekly pace over the last 26 weeks, with an 80% range from how uneven that pace has been. How far ahead it reaches grows with the weeks of history collected and with the latest hit rate, up to five years.',
   fn: (radar, accuracy) => {
     const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
@@ -54,18 +54,28 @@ dash.calc('projection', {
         const t = ref - w * 7;
         hist.push(sig.filter((r) => day(r.date) <= t).reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0));
       }
-      const n = Math.min(12, hist.length), tail = hist.slice(-n);
-      const xm = (n - 1) / 2, ym = tail.reduce((a, b) => a + b, 0) / n;
-      let num = 0, den = 0; tail.forEach((v, i) => { num += (i - xm) * (v - ym); den += (i - xm) ** 2; });
-      const slope = den ? num / den : 0;
-      const resid = Math.sqrt(tail.reduce((s, v, i) => s + (v - (ym + slope * (i - xm))) ** 2, 0) / n) || 0.05;
+      // Forecast = what today's signals fade to (they lose half their heat every 90 days, so this
+      // part is certain) + new signals arriving at this trend's usual weekly pace over the last
+      // 26 weeks. Using the long-run pace keeps a short burst of fresh signals from being
+      // stretched into a runaway line. The band is the 80% range from how uneven that pace has been.
+      const decay = Math.pow(0.5, 7 / 90);
+      const weeksBack = Math.min(26, spanWeeks);
+      const inflow = [];
+      for (let w = weeksBack - 1; w >= 0; w--) {
+        const t1 = ref - w * 7, t0 = t1 - 7;
+        inflow.push(sig.filter((r) => day(r.date) > t0 && day(r.date) <= t1).reduce((s, r) => s + (weight[r.heat] ?? 0), 0));
+      }
+      const pace = inflow.reduce((a, b) => a + b, 0) / Math.max(1, inflow.length);
+      const sd = Math.sqrt(inflow.reduce((s, v) => s + (v - pace) ** 2, 0) / Math.max(1, inflow.length - 1)) || 0;
       const r2 = (v) => Math.round(v * k);
-      hist.forEach((h, i) => out.push({ field, week: iso(ref - (hist.length - 1 - i) * 7), heat: r2(h), kind: 'actual', lo: null, hi: null, horizon_weeks: horizon, history_weeks: spanWeeks }));
-      let level = hist[hist.length - 1], damp = 0;
-      for (let k = 1; k <= horizon; k++) {
-        damp += Math.pow(0.95, k);
-        const f = level + slope * damp, band = resid * Math.sqrt(k) + 0.02 * k;
-        out.push({ field, week: iso(ref + k * 7), heat: r2(f), kind: 'forecast', lo: r2(f - band), hi: r2(f + band), horizon_weeks: horizon, history_weeks: spanWeeks });
+      hist.forEach((h, i) => out.push({ field, week: iso(ref - (hist.length - 1 - i) * 7), heat: r2(h), kind: 'actual', lo: null, hi: null, fade: null, horizon_weeks: horizon, history_weeks: spanWeeks, pace_per_week: r2(pace) }));
+      const level = hist[hist.length - 1];
+      let added = 0, varSum = 0;
+      for (let j = 1; j <= horizon; j++) {
+        added = added * decay + pace;
+        varSum = varSum * decay * decay + sd * sd;
+        const fade = level * Math.pow(decay, j), f = fade + added, band = 1.28 * Math.sqrt(varSum);
+        out.push({ field, week: iso(ref + j * 7), heat: r2(f), kind: 'forecast', lo: r2(f - band), hi: r2(f + band), fade: r2(fade), horizon_weeks: horizon, history_weeks: spanWeeks, pace_per_week: r2(pace) });
       }
     });
     return out;

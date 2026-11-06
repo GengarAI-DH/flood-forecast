@@ -379,66 +379,68 @@
   [['o_es', 'ext_super'], ['o_ee', 'ext_expert'], ['o_cs', 'cat_super'], ['o_ce', 'cat_expert']].forEach(([name, key]) => {
     dash.draw(name, (el) => { const r = rows('odds').find((d) => d.key === key); setText(el, r ? d3.format('~g')(r.value) : '—'); });
   });
-  dash.draw('ctable', (tb) => {
-    tb.replaceChildren();
-    rows('consensus').forEach((r) => {
-      const tr = document.createElement('tr'); tr.dataset.key = r.outcome;
-      const pct = (v) => `${d3.format('~g')(v)}%`;
-      [[r.outcome, ''], [String(r.estimates), 'r'], [pct(r.lowest), 'r'], [pct(r.highest), 'r'], [pct(r.consensus), 'r'], [pct(r.per_year), 'r']].forEach(([v, c], i) => {
-        const td = document.createElement('td'); td.textContent = v; if (c) td.className = c; if (i === 4) td.style.fontWeight = 'var(--cds-font-weight-medium)'; tr.appendChild(td);
-      });
-      tb.appendChild(tr);
-    });
-  });
-
+  // "1 in N" wording so a percent reads like everyday odds.
+  const oneIn = (p) => {
+    if (p == null) return '';
+    if (p >= 50) return 'more likely than not';
+    const n = 100 / p;
+    const r = n < 10 ? Math.round(n) : n < 100 ? Math.max(10, Math.round(n / 5) * 5) : Number(n.toPrecision(2));
+    return `about 1 in ${d3.format(',')(r)}`;
+  };
+  const pctTxt = (v) => `${d3.format('~g')(v)}%`;
+  const tested = (who) => /^(Super|Samotsvety)/.test(who);
   dash.draw('oddschart', (el) => {
     el.replaceChildren();
     const data = rows('odds');
     if (!data.length) return;
-    const groups = [...new Set(data.map((d) => d.group))];
-    const W = Math.max(300, el.clientWidth), narrow = W < 560;
-    const rowH = narrow ? 40 : 26, gapH = 30;
-    const svg = d3.select(el).append('svg').attr('width', '100%');
-    const lbl = (d) => `${d.label} · ${d.who}`;
-    const lw = narrow ? 0 : Math.min(330, measure(svg, data.map(lbl)) + 14);
-    const m = { l: narrow ? 8 : lw, r: 52, t: 6, b: 26 };
-    let yy = m.t; const pos = [];
-    groups.forEach((g) => { pos.push({ g, y: yy + 16, head: true }); yy += gapH; data.filter((d) => d.group === g).forEach((d) => { pos.push({ d, y: yy + rowH / 2 }); yy += rowH; }); });
-    const H = yy + m.b;
-    svg.attr('viewBox', `0 0 ${W} ${H}`);
-    const x = d3.scaleLog([0.01, 100], [m.l, W - m.r]);
-    svg.append('g').attr('transform', `translate(0,${H - m.b})`)
-      .call(d3.axisBottom(x).tickValues([0.01, 0.1, 1, 10, 100]).tickFormat((v) => `${d3.format('~g')(v)}%`).tickSize(-(H - m.b - m.t)))
-      .call(axisStyle);
-    const tip = d3.select(el).append('div').attr('class', 'tip').style('display', 'none');
-    pos.forEach((p, i) => {
-      if (p.head) {
-        svg.append('text').attr('x', narrow ? m.l : 0).attr('y', p.y).attr('fill', 'var(--color-fg)')
-          .style('font-size', 'var(--cds-font-size-caption)').style('font-weight', 'var(--cds-font-weight-medium)').text(p.g);
-        return;
-      }
-      const d = p.d, c = d.who.startsWith('Super') || d.who.startsWith('Samotsvety') ? dash.colors[0] : dash.colors[1 % dash.colors.length];
-      const dotY = narrow ? p.y + 7 : p.y;
-      svg.append('text').attr('x', narrow ? m.l : 0).attr('y', narrow ? p.y - 8 : p.y).attr('dy', '0.35em')
-        .attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)').text(lbl(d))
-        .each(function () { const s = this, max = narrow ? W - 16 : lw - 10; let t = s.textContent; while (s.getComputedTextLength() > max && t.length > 6) { t = t.slice(0, -2); s.textContent = t + '…'; } });
-      if (d.low != null && d.high != null) svg.append('line').attr('x1', x(d.low)).attr('x2', x(d.high)).attr('y1', dotY).attr('y2', dotY)
-        .attr('stroke', c).attr('stroke-opacity', 0.4).attr('stroke-width', 6).attr('stroke-linecap', 'round');
-      svg.append('circle').attr('cx', x(d.value)).attr('cy', dotY).attr('r', 6).style('fill', c).style('cursor', 'pointer')
-        .on('pointerenter pointermove click', (ev) => {
-          const [px, py] = d3.pointer(ev, el);
-          tip.style('display', null).selectAll('*').remove();
-          tip.append('div').attr('class', 't').text(d.label);
-          tip.append('div').text(`${d.who}: ${d3.format('~g')(d.value)}%${d.low != null ? ` (range ${d3.format('~g')(d.low)} to ${d3.format('~g')(d.high)}%)` : ''}`);
-          tip.append('div').text(d.source);
-          const tw = tip.node().offsetWidth;
-          tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
-        })
-        .on('pointerleave', () => tip.style('display', 'none'));
-      svg.append('text').attr('x', Math.min(x(d.high ?? d.value) + 10, W - m.r + 6)).attr('y', dotY).attr('dy', '0.35em')
-        .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)').text(`${d3.format('~g')(d.value)}%`);
+    const x = d3.scaleLog([0.01, 100], [0, 100]).clamp(true);
+    const legend = document.createElement('div'); legend.className = 'oddslegend';
+    [['Tested forecasters (proven track record)', dash.colors[0]], ['Experts and researchers', dash.colors[1]]].forEach(([t, c]) => {
+      const s = document.createElement('span'); const sw = document.createElement('i'); sw.style.background = c; s.append(sw, t); legend.appendChild(s);
     });
-    el.style.minHeight = H + 'px';
+    el.appendChild(legend);
+    const scale = document.createElement('div'); scale.className = 'oddsscale';
+    ['0.01%', '0.1%', '1%', '10%', '100%'].forEach((t, i) => { const s = document.createElement('span'); s.style.left = `${i * 25}%`; s.textContent = t; scale.appendChild(s); });
+    el.appendChild(scale);
+    [...new Set(data.map((d) => d.group))].forEach((g) => {
+      const h = document.createElement('h3'); h.className = 'oddsgroup'; h.textContent = g; el.appendChild(h);
+      const ul = document.createElement('ul'); ul.className = 'oddslist';
+      data.filter((d) => d.group === g).forEach((d) => {
+        const c = tested(d.who) ? dash.colors[0] : dash.colors[1];
+        const li = document.createElement('li');
+        const top = document.createElement('div'); top.className = 'orow';
+        const nm = document.createElement('span'); nm.className = 'oname'; nm.textContent = d.label;
+        const val = document.createElement('span'); val.className = 'oval'; val.textContent = pctTxt(d.value);
+        top.append(nm, val); li.appendChild(top);
+        const track = document.createElement('div'); track.className = 'otrack';
+        if (d.low != null && d.high != null) {
+          const rg = document.createElement('span'); rg.className = 'orange'; rg.style.left = `${x(d.low)}%`; rg.style.width = `${Math.max(1, x(d.high) - x(d.low))}%`; rg.style.background = c; track.appendChild(rg);
+        }
+        const dot = document.createElement('span'); dot.className = 'odot'; dot.style.left = `${x(d.value)}%`; dot.style.background = c; track.appendChild(dot);
+        li.appendChild(track);
+        const meta = document.createElement('div'); meta.className = 'ometa';
+        meta.append(`${oneIn(d.value)}${d.low != null ? `, likely range ${pctTxt(d.low)} to ${pctTxt(d.high)}` : ''}. `);
+        if (d.url) { const a = document.createElement('a'); a.href = d.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = `${d.who}, ${d.source} ↗`; meta.appendChild(a); }
+        else meta.append(`${d.who}, ${d.source}`);
+        li.appendChild(meta);
+        ul.appendChild(li);
+      });
+      el.appendChild(ul);
+    });
+  });
+
+  dash.draw('ccards', (el) => {
+    el.replaceChildren();
+    rows('consensus').forEach((r) => {
+      const card = document.createElement('div'); card.className = 'ccard';
+      const h = document.createElement('h4'); h.textContent = r.outcome; card.appendChild(h);
+      const big = document.createElement('p'); big.className = 'cbig';
+      const b = document.createElement('b'); b.textContent = pctTxt(r.consensus);
+      big.append(b, ` ${oneIn(r.consensus)}`); card.appendChild(big);
+      const p1 = document.createElement('p'); p1.textContent = `Combined from ${r.estimates} published estimates that range from ${pctTxt(r.lowest)} to ${pctTxt(r.highest)}.`; card.appendChild(p1);
+      const p2 = document.createElement('p'); p2.textContent = `Spread evenly to 2100, that's about ${pctTxt(r.per_year)} a year (${oneIn(r.per_year)} each year).`; card.appendChild(p2);
+      el.appendChild(card);
+    });
   });
 
   const riskColor = (v) => (v >= 80 ? 'var(--color-bad)' : v >= 60 ? 'var(--cds-chart-status-critical)' : v >= 40 ? 'var(--color-warn)' : 'var(--color-ok)');
@@ -586,8 +588,9 @@
     if (!d.length) { setText(el, '—'); return; }
     const act = d.filter((r) => r.kind === 'actual'), fc = d.filter((r) => r.kind === 'forecast');
     const now = act[act.length - 1].heat, end = fc[fc.length - 1];
-    const dir = end.heat > now + 2 ? 'keep heating up' : end.heat < now - 2 ? 'cool off' : 'hold steady';
-    setText(el, `Heat ${d3.format('.0f')(now)} of 100 now. Over the next ${end.horizon_weeks} weeks it's forecast to ${dir}, reaching about ${d3.format('.0f')(end.heat)} (range ${d3.format('.0f')(end.lo)} to ${d3.format('.0f')(end.hi)}).`);
+    const dir = end.heat > now + 2 ? 'keep heating up' : end.heat < now - 2 ? 'cool off a little' : 'hold about steady';
+    const f0 = d3.format('.0f');
+    setText(el, `Heat ${f0(now)} of 100 now. If new signals keep arriving at their usual pace, it should ${dir} over the next ${end.horizon_weeks} weeks, to about ${f0(end.heat)} (likely ${f0(Math.max(end.lo, Math.min(0, end.fade)))} to ${f0(end.hi)}). If nothing new happens, today's signals fade to about ${f0(end.fade)}. How far ahead it can see grows as more history comes in.`);
   });
   dash.draw('tddrivers', (el) => {
     el.replaceChildren();
