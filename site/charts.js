@@ -259,7 +259,7 @@
   const heatWord = (v) => (v < 0 ? 'crowding' : v < 20 ? 'quiet' : v < 40 ? 'warming' : v < 60 ? 'hot' : v < 80 ? 'very hot' : 'red-hot');
   const heatTxt = (v) => `${d3.format('.0f')(v)} (${heatWord(v)})`;
   // One color per heat band, the same everywhere (matches the heat strip).
-  const HEATC = (v) => (v < 0 ? '#5d6b7a' : v < 20 ? '#7d838c' : v < 40 ? '#b8962e' : v < 60 ? '#d07a22' : v < 80 ? '#c4502a' : '#a3231c');
+  const HEATC = (v) => (v < 0 ? '#5d6b7a' : v < 20 ? '#6f757e' : v < 40 ? '#8f7418' : v < 60 ? '#b25f12' : v < 80 ? '#b2401f' : '#a3231c');
   const arrowTxt = (c) => (c == null ? '' : c >= 2 ? `↑${d3.format('.0f')(c)}` : c <= -2 ? `↓${d3.format('.0f')(-c)}` : '→');
   // One legend for heat, used wherever heat shows: the same bands every day.
   const heatStrip = () => {
@@ -732,11 +732,13 @@
         sp.textContent = `${c} · ${v.n}`; el.appendChild(sp);
       });
   });
-  const listInto = (el, items, empty) => {
+  const listInto = (el, items, empty, withPeople) => {
     el.replaceChildren();
     if (!items.length) { const li = document.createElement('li'); li.className = 'meta'; li.textContent = empty; el.appendChild(li); return; }
     items.forEach((r) => {
       const li = document.createElement('li');
+      const who = withPeople ? personFor(r) : null;
+      if (who) { const pw = document.createElement('div'); const ps = document.createElement('span'); ps.className = 'chip tlink'; ps.dataset.person = who.name; ps.textContent = `${who.name} ›`; pw.appendChild(ps); li.appendChild(pw); }
       const t = document.createElement('div'); t.textContent = r.signal; li.appendChild(t);
       const m = document.createElement('div'); m.className = 'meta';
       m.appendChild(document.createTextNode(`${d3.utcFormat('%b %-d, %Y')(new Date(r.date))} · ${r.category} · `)); m.appendChild(link(r));
@@ -784,7 +786,56 @@
     });
   });
 
-  dash.draw('tdpeople', (el) => listInto(el, sigFor(picked()).filter((r) => r.category === 'Key people'), 'No key people logged for this trend yet.'));
+  // What's driving each trend, in one plain sentence per trend.
+  dash.draw('drivers', (el) => {
+    el.replaceChildren();
+    const map = rows('map').slice().sort((a, b) => b.heat - a.heat);
+    const radar = rows('radar');
+    const ul = document.createElement('ul'); ul.className = 'drivers';
+    map.forEach((m, i) => {
+      const sig = radar.filter((r) => r.field === m.field);
+      const by = d3.rollups(sig, (v) => v.length, (r) => r.category).sort((a, b) => b[1] - a[1]);
+      const top = by.slice(0, 2);
+      const share = top.reduce((t, [, n]) => t + n, 0);
+      const li = document.createElement('li'); li.className = 'tlink' + (i >= 8 ? ' dv-extra is-off' : ''); li.dataset.trend = m.field;
+      const n = document.createElement('span'); n.className = 'dv-name'; n.textContent = m.field;
+      const hv = document.createElement('span'); hv.className = 'dv-heat'; hv.style.color = HEATC(m.heat); hv.textContent = `${m.heat} ${heatWord(m.heat)}`;
+      const head = document.createElement('div'); head.className = 'dv-head'; head.append(n, hv); li.appendChild(head);
+      const p = document.createElement('p'); p.className = 'dv-why';
+      const late = top.some(([c]) => c === 'Social' || c === 'Courses'), early = top.some(([c]) => c === 'Funding' || c === 'Key people');
+      p.textContent = sig.length
+        ? `Mostly ${top.map(([c]) => c.toLowerCase()).join(' and ')} (${share} of ${sig.length} signals), ${m.impact}% real action. ${early && !late ? 'Money and leaders moving first usually means early.' : late && !early ? 'Social buzz and how-tos leading usually means late.' : top[0] && top[0][0] === 'Jobs' ? 'Hiring leading means it has gone mainstream.' : 'A mix, so watch which type grows next.'}`
+        : 'No signals yet.';
+      li.appendChild(p); ul.appendChild(li);
+    });
+    el.appendChild(ul);
+    if (map.length > 8) {
+      const more = document.createElement('button'); more.type = 'button'; more.className = 'mk-more';
+      const sA = document.createElement('span'); sA.textContent = `Show all ${map.length}`; const sT = document.createElement('span'); sT.textContent = 'Show top 8'; sT.className = 'is-off';
+      more.append(sA, sT);
+      more.addEventListener('click', () => { const open = sT.classList.contains('is-off'); ul.querySelectorAll('.dv-extra').forEach((x) => x.classList.toggle('is-off', !open)); sA.classList.toggle('is-off', open); sT.classList.toggle('is-off', !open); });
+      el.appendChild(more);
+    }
+  });
+
+  // Key people as readable rows instead of a cramped table.
+  dash.draw('kplist', (el) => {
+    el.replaceChildren();
+    const ul = document.createElement('ul'); ul.className = 'dlist';
+    rows('kpsignals').forEach((r) => {
+      const li = document.createElement('li');
+      const who = personFor(r);
+      const top = document.createElement('div');
+      if (who) { const ps = document.createElement('span'); ps.className = 'chip tlink'; ps.dataset.person = who.name; ps.textContent = `${who.name} ›`; top.appendChild(ps); }
+      const tr = document.createElement('span'); tr.className = 'tlink kp-trend'; tr.dataset.trend = r.field; tr.textContent = r.field; top.appendChild(tr);
+      li.appendChild(top);
+      const t = document.createElement('div'); t.textContent = r.signal; li.appendChild(t);
+      const m = document.createElement('div'); m.className = 'meta'; m.append(`${d3.utcFormat('%b %-d, %Y')(new Date(r.date))} · `); m.appendChild(link(r)); li.appendChild(m);
+      ul.appendChild(li);
+    });
+    el.appendChild(ul);
+  });
+  dash.draw('tdpeople', (el) => listInto(el, sigFor(picked()).filter((r) => r.category === 'Key people'), 'No key people logged for this trend yet.', true));
   dash.draw('tdsignals', (el) => listInto(el, sigFor(picked()), 'No signals yet.'));
 
   const STATUS = { 'Trending harder': 'var(--color-ok)', 'Cooling off': 'var(--color-warn)', 'Becoming a problem': 'var(--color-bad)', 'Steady': 'var(--color-fg-muted)', 'No new data': 'var(--color-fg-muted)' };

@@ -202,10 +202,14 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 
     <div class="grid">
       <section class="card" id="heatmap">
-        <div class="cardhead"><h2>Heat map: field by signal type</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Rows are trends, columns are signal types. Darker blue is hotter; red means crowding signals.</p><p><b>What it's for:</b> Shows what's driving each trend: money, jobs, social buzz, politics or key people.</p><p><b>Watch for:</b> Trends hot in Funding or Key people but cold in Social are early. Hot in Social and Courses means late.</p><p><b>The heat score:</b> the same fixed 0 to 100 scale as the trends, for one trend and one signal type at a time, so squares are usually small. Darker means hotter.</p></div>
-        <p class="note">Darker blue is hotter. Red cells mean crowding signals.</p>
-        <div class="chart" data-draw="heatmapchart" data-source="grid"></div>
+        <div class="cardhead"><h2>What's driving each trend</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> One line per trend: which kinds of signals are behind it, how much of it is real action rather than talk, and what that usually means.</p><p><b>What it's for:</b> Tells you why something is hot, not just that it is.</p><p><b>Watch for:</b> Funding and key people leading means early. Social buzz and how-to courses leading means late. The full grid underneath shows every trend against every signal type.</p></div>
+        <div data-draw="drivers" data-source="map"></div>
+        <button class="curiousbtn" type="button" aria-expanded="false" aria-controls="gridbox"><span class="c-show">Show the full grid: every trend × every signal type ▾</span><span class="c-hide">Hide the grid ▴</span></button>
+        <div id="gridbox" hidden>
+          <p class="note">Each square is one trend and one signal type, on the same 0 to 100 heat scale. Darker blue is hotter. Red squares mean crowding signals.</p>
+          <div class="chart" data-draw="heatmapchart" data-source="grid"></div>
+        </div>
       </section>
       <section class="card" id="catbars">
         <div class="cardhead"><h2>Which signal types are peaking</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
@@ -229,15 +233,10 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 
     <section class="card" id="keypeople">
       <div class="cardhead"><h2>Key people</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each row is one public statement or official move, with the trend it affects and the source.</p><p><b>What it's for:</b> Powerful people often move markets and policy before anything else shifts.</p><p><b>Watch for:</b> Several key people talking about the same trend in a short span usually comes before money moves.</p></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each item is one public statement or official move: who, the trend it affects, what they said or did, and the source. Tap a name for their background.</p><p><b>What it's for:</b> Powerful people often move markets and policy before anything else shifts.</p><p><b>Watch for:</b> Several key people talking about the same trend in a short span usually comes before money moves.</p></div>
       <p class="note">Public statements and official moves by leaders, central bankers and top CEOs, tied to the trend they affect.</p>
       <p class="label" data-draw="kpempty" data-source="kpsignals">—</p>
-      <div class="tablebox">
-        <table data-source="kpsignals" data-row-key="signal" class="kptable">
-          <thead><tr><th>Who</th><th data-field="date">Date</th><th data-field="field">Trend</th><th data-field="signal">What they said or did</th><th data-field="source">Source</th></tr></thead>
-          <tbody data-draw="kptable" data-source="people"></tbody>
-        </table>
-      </div>
+      <div data-draw="kplist" data-source="kpsignals"></div>
     </section>
 
     <section class="card" id="radar">
