@@ -35,7 +35,7 @@ dash.calc('projection', {
   title: 'Heat forecast',
   description: 'Weekly heat per trend projected forward: today\'s signals fading by half every 90 days, plus new signals arriving at the trend\'s average weekly pace over the last 26 weeks, with an 80% range from how uneven that pace has been. How far ahead it reaches grows with the weeks of history collected and with the latest hit rate, up to five years.',
   fn: (radar, accuracy) => {
-    const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
+    const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
@@ -46,7 +46,6 @@ dash.calc('projection', {
     const horizon = Math.max(4, Math.min(260, Math.round(spanWeeks * 0.5 * Math.min(1.5, Math.max(0.5, rate / 0.67)))));
     const iso = (t) => new Date(t * 864e5).toISOString().slice(0, 10);
     const out = [];
-    const k = ffScale(radar);
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       const sig = radar.filter((r) => r.field === field);
       const hist = [];
@@ -67,7 +66,7 @@ dash.calc('projection', {
       }
       const pace = inflow.reduce((a, b) => a + b, 0) / Math.max(1, inflow.length);
       const sd = Math.sqrt(inflow.reduce((s, v) => s + (v - pace) ** 2, 0) / Math.max(1, inflow.length - 1)) || 0;
-      const r2 = (v) => Math.round(v * k);
+      const r2 = (v) => score(v);
       hist.forEach((h, i) => out.push({ field, week: iso(ref - (hist.length - 1 - i) * 7), heat: r2(h), kind: 'actual', lo: null, hi: null, fade: null, horizon_weeks: horizon, history_weeks: spanWeeks, pace_per_week: r2(pace) }));
       const level = hist[hist.length - 1];
       let added = 0, varSum = 0;
@@ -87,19 +86,18 @@ dash.calc('map', {
   title: 'Trend map',
   description: 'For each trend: how far along its lifecycle it is (the furthest stage its signals from the last year point to), its heat now (signals fading by half every 90 days), and how many signals back it.',
   fn: (radar) => {
-    const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
+    const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const order = ['Tech emerges', 'Funding boom', 'Job spike', 'Courses boom', 'Content flood', 'Flooded'];
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
-    const k = ffScale(radar);
     return [...new Set(radar.map((r) => r.field))].map((field) => {
       const sig = radar.filter((r) => r.field === field);
       const recent = sig.filter((r) => ref - day(r.date) <= 365);
       const stage = Math.max(1, ...recent.map((r) => order.indexOf(r.stage) + 1));
       const pts = sig.reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
       const zone = pts <= 0 ? 'Fading' : stage <= 2 ? 'Get in early' : stage <= 4 ? 'Hot now' : 'Crowded';
-      return { field, stage, heat: Math.round(pts * k), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone };
+      return { field, stage, heat: score(pts), heat_pts: Math.round(pts * 100) / 100, signals: sig.length, zone };
     });
   },
 });
@@ -108,19 +106,18 @@ window.FF_CATS = ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'S
 dash.calc('grid', {
   inputs: ['radar'],
   title: 'Heat by field and type',
-  description: 'Heat now for every field and signal type, on the same 0 to 100 score as the trends (100 is the hottest trend right now).',
+  description: 'Heat now for every field and signal type, on the same fixed 0 to 100 heat scale as the trends.',
   fn: (radar) => {
-    const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
+    const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const out = [];
-    const k = ffScale(radar);
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       ['Key people', 'World events', 'Politics', 'Stocks', 'News', 'Social', 'Funding', 'Jobs', 'Courses'].forEach((category) => {
         const h = radar.filter((r) => r.field === field && r.category === category)
           .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0);
-        out.push({ field, category, heat: Math.round(h * k), heat_pts: Math.round(h * 100) / 100 });
+        out.push({ field, category, heat: score(h), heat_pts: Math.round(h * 100) / 100 });
       });
     });
     return out;
@@ -129,7 +126,7 @@ dash.calc('grid', {
 dash.calc('cats', {
   inputs: ['radar'],
   title: 'Heat by signal type',
-  description: 'Total heat per signal type across all fields, same scoring and 90-day fade, shown as a 0 to 100 score where the hottest signal type is 100.',
+  description: 'Total heat per signal type across all fields, same scoring and 90-day fade, shown as each type\'s share of all heat (the shares add up to 100%).',
   fn: (radar) => {
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
@@ -140,8 +137,9 @@ dash.calc('cats', {
         .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (ref - day(r.date)) / 90), 0),
       signals: radar.filter((r) => r.category === category).length,
     }));
-    const top = Math.max(0.01, ...rows.map((r) => r.pts));
-    return rows.map((r) => ({ category: r.category, heat: Math.round((r.pts / top) * 100), heat_pts: Math.round(r.pts * 100) / 100, signals: r.signals }));
+    // Share of all heat: what slice of the total each signal type is contributing (adds up to 100%).
+    const total = Math.max(0.01, rows.reduce((t, r) => t + Math.max(0, r.pts), 0));
+    return rows.map((r) => ({ category: r.category, heat: Math.round((Math.max(0, r.pts) / total) * 100), heat_pts: Math.round(r.pts * 100) / 100, signals: r.signals }));
   },
 });
 dash.calc('trend', {
@@ -149,18 +147,17 @@ dash.calc('trend', {
   title: 'Heat over the last year',
   description: 'Heat per field at the end of each of the last 52 weeks, counting only signals dated by then.',
   fn: (radar) => {
-    const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
+    const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const out = [];
-    const k = ffScale(radar);
     [...new Set(radar.map((r) => r.field))].forEach((field) => {
       for (let w = 51; w >= 0; w--) {
         const t = ref - w * 7;
         const h = radar.filter((r) => r.field === field && day(r.date) <= t)
           .reduce((s, r) => s + (weight[r.heat] ?? 0) * Math.pow(0.5, (t - day(r.date)) / 90), 0);
-        out.push({ field, week: new Date(t * 864e5).toISOString().slice(0, 10), heat: Math.round(h * k) });
+        out.push({ field, week: new Date(t * 864e5).toISOString().slice(0, 10), heat: score(h) });
       }
     });
     return out;
@@ -172,12 +169,12 @@ dash.calc('watched', {
   title: 'Watched trends, then vs now',
   description: 'For each watched trend: its heat, stage and zone when you started watching, 30 days ago (from the weekly heat series) and now, the change, new signals since you started watching, and a status: trending harder (heat score up 5+ or moving toward hot), cooling off (heat score down 5+), becoming a problem (newly crowded or fading), else steady.',
   fn: (watchlist, map, trend, radar) => watchlist.map((w) => {
-    const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
+    const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const now = map.find((r) => r.field === w.field);
     const series = trend.filter((r) => r.field === w.field);
     const ago = series.length > 4 ? series[series.length - 5].heat : null;
     const r2 = (v) => (v == null ? null : Math.round(v));
-    const base = Math.round((w.base_heat || 0) * ffScale(radar));
+    const base = score(w.base_heat || 0);
     const nh = now ? now.heat : null;
     const dh = nh == null ? 0 : nh - base;
     let status = 'Steady';
@@ -234,13 +231,12 @@ dash.calc('heat', {
   title: 'Heat by field',
   description: 'Each signal adds heat that fades by half every 90 days, then heat flows along the influence edges (one and two steps) into jobs and courses.',
   fn: (radar, edges) => {
-    const ffScale = (rd) => { const wt = { 3: 1, 2: 0.5, 1: -0.5 }; const dy = (x) => Date.parse(x) / 864e5; if (!rd.length) return 1; const rf = Math.max(...rd.map((r) => dy(r.date))); const per = {}; rd.forEach((r) => { per[r.field] = (per[r.field] || 0) + (wt[r.heat] ?? 0) * Math.pow(0.5, (rf - dy(r.date)) / 90); }); return 100 / Math.max(0.01, ...Object.values(per)); }; // 100 = hottest trend right now
+    const score = (p) => Math.round(p >= 0 ? 100 * (1 - Math.exp(-p / 8)) : -100 * (1 - Math.exp(p / 8))); // fixed heat scale: 0 to 100, never above 100
     const weight = { 3: 1, 2: 0.5, 1: -0.5 };
     const day = (s) => Date.parse(s) / 864e5;
     const ref = Math.max(...radar.map((r) => day(r.date)));
     const fields = [...new Set(radar.map((r) => r.field))];
     const into = (to) => edges.filter((e) => e.to === to);
-    const k = ffScale(radar);
     return fields.map((field) => {
       const node = {};
       radar.filter((r) => r.field === field).forEach((r) => {
@@ -251,7 +247,7 @@ dash.calc('heat', {
       const now = Object.values(node).reduce((a, b) => a + b, 0);
       const jobs = flow('Jobs'), courses = flow('Courses');
       const outlook = jobs > courses + 0.2 ? 'Opportunity building' : courses > jobs + 0.2 ? 'Crowding coming' : now < 0 ? 'Cooling' : 'Balanced';
-      const r2 = (v) => Math.round(v * k);
+      const r2 = (v) => score(v);
       return { field, heat_now: r2(now), jobs_incoming: r2(jobs), courses_incoming: r2(courses), outlook };
     });
   },

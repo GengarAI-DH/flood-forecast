@@ -133,13 +133,13 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     <div class="pagehead"><h2 class="ptitle">Overview</h2><p class="note">The big picture: every trend on one map, and where the hottest ones are headed.</p></div>
     <section class="card digest" id="digest">
       <div class="cardhead"><h2>Today's digest</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> The three trends that gained the most heat over the last 4 weeks, the one that cooled most, and the newest whisper or new arrival. The number is the change in heat.</p><p><b>What it's for:</b> Your 15-second morning check. Tap any name for the full story.</p><p><b>Watch for:</b> A trend that shows up under Heating up several days running is a real move.</p><p><b>The heat score:</b> 0 to 100, where 100 is the hottest trend right now and 50 is half as hot. Signals add points and fade by half every 90 days. A +15 is about one strong new signal right now.</p></div>
+      <div class="info" hidden><p><b>How to read it:</b> The three trends that gained the most heat over the last 4 weeks, the one that cooled most, and the newest whisper or new arrival. The number is the change in heat.</p><p><b>What it's for:</b> Your 15-second morning check. Tap any name for the full story.</p><p><b>Watch for:</b> A trend that shows up under Heating up several days running is a real move.</p><p><b>The heat score:</b> a fixed 0 to 100 scale. 0 to 20 is quiet, 20 to 40 warming, 40 to 60 hot, 60 to 80 very hot, 80 to 100 red-hot. It can't go above 100. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p></div>
       <ul class="dlist" data-draw="digestlist" data-source="digest"></ul>
     </section>
 
     <section class="card" id="glance">
       <div class="cardhead"><h2>Everything at a glance</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble to open why it's trending, who's behind it, and every source. Zoom in and each bubble sprouts small dots, one per signal type fueling it, sized by how many signals and colored by type.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded. When zoomed in, a trend fueled by Funding and Key people is early; one fueled by Social and Courses is late.</p><p><b>Bubble size:</b> how many signals back it. Big means well proven, small means it could still move a lot.</p><p><b>On a phone:</b> each bubble shows its rank number, and the list under the map matches the numbers to names. Pinch to zoom and the names appear on the map.</p><p><b>The heat score:</b> Every signal adds points: 1 for a strong, fresh signal, 0.5 for one that's building, and −0.5 for one that shows crowding. Points fade by half every 90 days. The trend with the most points right now is 100, and every other trend is scored against it, so 50 means half as hot as the leader. Below 0 means crowding signals outweigh the heat. While the collector is still young, one new signal can move a trend 10 to 20 points. That settles down as more signals come in.</p></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each bubble is a trend. Left to right is how far along it is; higher means hotter right now; bigger means more evidence. Tap a bubble to open why it's trending, who's behind it, and every source. Zoom in and each bubble sprouts small dots, one per signal type fueling it, sized by how many signals and colored by type.</p><p><b>What it's for:</b> Your 10-second check on what's worth paying attention to.</p><p><b>Watch for:</b> Bubbles in the green zone that are high up: early and heating. A bubble sliding right into red means it's getting crowded. When zoomed in, a trend fueled by Funding and Key people is early; one fueled by Social and Courses is late.</p><p><b>Bubble size:</b> how many signals back it. Big means well proven, small means it could still move a lot.</p><p><b>On a phone:</b> each bubble shows its rank number, and the list under the map matches the numbers to names. Pinch to zoom and the names appear on the map.</p><p><b>The heat score:</b> A fixed scale from 0 to 100 that means the same thing every day. 0 to 20 is quiet, 20 to 40 is warming, 40 to 60 is hot, 60 to 80 is very hot, and 80 to 100 is red-hot. Below 0 means crowding signals outweigh the heat. Every signal adds points: 1 for a strong, fresh signal, 0.5 for one that's building, and −0.5 for one that shows crowding, and points fade by half every 90 days. About 2 strong fresh signals gets a trend to 20, about 6 gets it to 50, and it takes roughly 18 or more to pass 90. The closer a trend gets to 100, the more signals each extra point takes, so it can never go past 100. Early on, with few signals, one new signal can move a trend 10 points or so.</p></div>
       <p class="note">Every trend on one map. Further right is later in its life, higher is hotter, bigger has more evidence. Tap a bubble or a name in the list for why. The ⓘ explains the score.</p>
       <div class="legend">
         <span><i class="sw zone" data-z="Get in early"></i>Get in early</span>
@@ -170,7 +170,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
 
     <section class="card" id="forecastcard">
       <div class="cardhead"><h2>Where each trend is headed</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Solid lines are what happened, dashed lines are the forecast, and the shaded band is how unsure it is. The dashed line marks today.</p><p><b>What it's for:</b> Shows which trends are likely to keep rising or start cooling over the coming weeks.</p><p><b>Watch for:</b> A dashed line still climbing with a narrow band is the strongest call. A very wide band means: don't trust it yet.</p><p><b>The heat score:</b> 0 to 100, where 100 is the hottest trend right now and 50 is half as hot. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p><p><b>Where the forecast comes from:</b> two parts. First, today's signals fade by half every 90 days, which is certain. Second, new signals are expected at the trend's average weekly pace over the last 26 weeks. A short burst of news doesn't get stretched into a runaway line. The band is the likely range (8 in 10 chance) based on how uneven that pace has been.</p><p><b>Above 100:</b> a forecast over 100 means it's projected to get hotter than today's leader.</p></div>
+      <div class="info" hidden><p><b>How to read it:</b> Solid lines are what happened, dashed lines are the forecast, and the shaded band is how unsure it is. The dashed line marks today.</p><p><b>What it's for:</b> Shows which trends are likely to keep rising or start cooling over the coming weeks.</p><p><b>Watch for:</b> A dashed line still climbing with a narrow band is the strongest call. A very wide band means: don't trust it yet.</p><p><b>The heat score:</b> a fixed 0 to 100 scale. 0 to 20 is quiet, 20 to 40 warming, 40 to 60 hot, 60 to 80 very hot, 80 to 100 red-hot. It can't go above 100. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p><p><b>Where the forecast comes from:</b> two parts. First, today's signals fade by half every 90 days, which is certain. Second, new signals are expected at the trend's average weekly pace over the last 26 weeks. A short burst of news doesn't get stretched into a runaway line. The band is the likely range (8 in 10 chance) based on how uneven that pace has been.</p></div>
       <p class="note">Solid lines are what happened. Dashed lines are the forecast, with the shaded band showing how sure it is. Right now it can see <b data-draw="reach" data-source="projection" data-field="horizon_weeks" data-row="0">—</b> weeks ahead from <b data-draw="histw" data-source="projection" data-field="history_weeks" data-row="0">—</b> weeks of history. That reach grows as the collector logs more data and as its calls prove right, up to five years out.</p>
       <div class="legend" data-draw="fclegend" data-source="projection"></div>
       <div class="chart" data-draw="fcchart" data-source="projection"></div>
@@ -181,7 +181,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     <div class="pagehead"><h2 class="ptitle">Watched</h2><p class="note">Trends you starred: what they were, what they are now, and whether each one is speeding up, cooling off or turning into a problem.</p></div>
     <section class="card" id="watchlistcard">
       <div class="cardhead"><h2>Your watchlist</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each card compares a trend 30 days ago, when you started watching, and now. The line is its heat over the last year. Tap a name for the full why.</p><p><b>What it's for:</b> Following the few trends that matter to you without digging through everything else.</p><p><b>Watch for:</b> Trending harder means heat is up or it moved toward hot. Cooling off means heat is dropping. Becoming a problem means it just slid into crowded or fading.</p><p><b>The ! badge:</b> green means a big good change (up 5 or more, or moved toward hot), red means a big bad one (down 5 or more, or slid into crowded or fading).</p><p><b>The heat score:</b> 0 to 100, where 100 is the hottest trend right now and 50 is half as hot. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each card compares a trend 30 days ago, when you started watching, and now. The line is its heat over the last year. Tap a name for the full why.</p><p><b>What it's for:</b> Following the few trends that matter to you without digging through everything else.</p><p><b>Watch for:</b> Trending harder means heat is up or it moved toward hot. Cooling off means heat is dropping. Becoming a problem means it just slid into crowded or fading.</p><p><b>The ! badge:</b> green means a big good change (up 5 or more, or moved toward hot), red means a big bad one (down 5 or more, or slid into crowded or fading).</p><p><b>The heat score:</b> a fixed 0 to 100 scale. 0 to 20 is quiet, 20 to 40 warming, 40 to 60 hot, 60 to 80 very hot, 80 to 100 red-hot. It can't go above 100. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p></div>
       <div class="wgrid" data-draw="wcards" data-source="watched trend"></div>
     </section>
     <section class="card" id="watchhow">
@@ -194,22 +194,22 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     <div class="pagehead"><h2 class="ptitle">Trends</h2><p class="note">What's heating up, which signal types are driving it, and the raw signals behind every number.</p></div>
     <section class="card" id="trendcard">
       <div class="cardhead"><h2>Heat over time</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each line is one trend's heat over the last year, measured weekly.</p><p><b>What it's for:</b> Shows momentum: is a trend speeding up, flat, or fading?</p><p><b>Watch for:</b> Lines that bend upward sharply are breakouts. A line rolling over after a peak often means crowding.</p><p><b>The heat score:</b> 0 to 100, where 100 is the hottest trend right now and 50 is half as hot. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p></div>
-      <p class="note">Weekly heat per field over the last year, scored 0 to 100 (100 is the hottest trend today). Rising lines are heating up. Fills in more as the collector logs signals.</p>
+      <div class="info" hidden><p><b>How to read it:</b> Each line is one trend's heat over the last year, measured weekly.</p><p><b>What it's for:</b> Shows momentum: is a trend speeding up, flat, or fading?</p><p><b>Watch for:</b> Lines that bend upward sharply are breakouts. A line rolling over after a peak often means crowding.</p><p><b>The heat score:</b> a fixed 0 to 100 scale. 0 to 20 is quiet, 20 to 40 warming, 40 to 60 hot, 60 to 80 very hot, 80 to 100 red-hot. It can't go above 100. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p></div>
+      <p class="note">Weekly heat per field over the last year, on the fixed 0 to 100 heat scale. Rising lines are heating up. Fills in more as the collector logs signals.</p>
       <div class="chart" data-draw="trendchart" data-source="trend"></div>
     </section>
 
     <div class="grid">
       <section class="card" id="heatmap">
         <div class="cardhead"><h2>Heat map: field by signal type</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Rows are trends, columns are signal types. Darker blue is hotter; red means crowding signals.</p><p><b>What it's for:</b> Shows what's driving each trend: money, jobs, social buzz, politics or key people.</p><p><b>Watch for:</b> Trends hot in Funding or Key people but cold in Social are early. Hot in Social and Courses means late.</p><p><b>The heat score:</b> 0 to 100, where each square is scored against the hottest trend overall, so squares are usually smaller. Signals add points and fade by half every 90 days. The ⓘ on the map has the full explanation.</p></div>
+      <div class="info" hidden><p><b>How to read it:</b> Rows are trends, columns are signal types. Darker blue is hotter; red means crowding signals.</p><p><b>What it's for:</b> Shows what's driving each trend: money, jobs, social buzz, politics or key people.</p><p><b>Watch for:</b> Trends hot in Funding or Key people but cold in Social are early. Hot in Social and Courses means late.</p><p><b>The heat score:</b> the same fixed 0 to 100 scale as the trends, for one trend and one signal type at a time, so squares are usually small. Darker means hotter.</p></div>
         <p class="note">Darker blue is hotter. Red cells mean crowding signals.</p>
         <div class="chart" data-draw="heatmapchart" data-source="grid"></div>
       </section>
       <section class="card" id="catbars">
         <div class="cardhead"><h2>Which signal types are peaking</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each bar is total heat for one signal type across every trend.</p><p><b>What it's for:</b> Shows where the action is right now across the whole world.</p><p><b>Watch for:</b> When Funding and Key people lead, new waves are starting. When Courses and Social lead, a lot of things are peaking.</p><p><b>The score:</b> these bars add up every trend, so they're scored on their own: the hottest signal type is 100 and the rest are a share of it.</p></div>
-        <p class="note">Total heat per signal type across every field, scored so the hottest type is 100.</p>
+      <div class="info" hidden><p><b>How to read it:</b> Each bar is one signal type's share of all the heat across every trend.</p><p><b>What it's for:</b> Shows where the action is right now across the whole world.</p><p><b>Watch for:</b> When Funding and Key people lead, new waves are starting. When Courses and Social lead, a lot of things are peaking.</p><p><b>The numbers:</b> each bar is that signal type's share of all the heat across every trend, so they add up to 100%.</p></div>
+        <p class="note">Each signal type's share of all the heat right now. The shares add up to 100%.</p>
         <div class="chart" data-draw="catchart" data-source="cats"></div>
       </section>
     </div>
@@ -280,14 +280,30 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
   </section>
 
   <section class="page" id="model" role="tabpanel" hidden>
-    <div class="pagehead"><h2 class="ptitle">How it works</h2><p class="note">The career forecasts, the influence network, how accurate the model has been, and the method.</p></div>
+    <div class="pagehead"><h2 class="ptitle">How it works</h2><p class="note">How much to trust each part, when today's career fields are likely to get crowded, and the method behind it.</p></div>
+    <section class="card trust" id="trust">
+      <div class="cardhead"><h2>How much to trust this</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each part of the app gets a plain rating, worked out from the live numbers: how much data is behind it and how well it has done when checked.</p><p><b>What it's for:</b> So you know which numbers to lean on and which to treat as a rough guide.</p><p><b>Watch for:</b> Ratings move up as the collector gathers more signals and the weekly accuracy checks come in.</p></div>
+      <ul class="trustlist" data-draw="trustbox" data-source="radar"></ul>
+    </section>
     <section class="tiles" id="tiles">
-      <div class="card tile"><span class="label">Robotics technician floods around</span><span class="num" data-draw="t_robot" data-source="forecasts" data-field="flood_year" data-where="field=Robotics%20technician">—</span></div>
-      <div class="card tile"><span class="label">Agentic AI engineer floods around</span><span class="num" data-draw="t_agent" data-source="forecasts" data-field="flood_year" data-where="field=Agentic%20AI%20engineer">—</span></div>
-      <div class="card tile"><span class="label">Backtest average miss (years)</span><span class="num" data-draw="t_mae" data-source="model" data-field="mae_years">—</span></div>
-      <div class="card tile"><span class="label">Past trends the model learned from</span><span class="num" data-draw="t_cases" data-source="model" data-field="past_cases">—</span></div>
+      <div class="card tile"><span class="label">Robotics technician gets crowded around</span><span class="num" data-draw="t_robot" data-source="forecasts" data-field="flood_year" data-where="field=Robotics%20technician">—</span></div>
+      <div class="card tile"><span class="label">Agentic AI engineer gets crowded around</span><span class="num" data-draw="t_agent" data-source="forecasts" data-field="flood_year" data-where="field=Agentic%20AI%20engineer">—</span></div>
     </section>
 
+    <section class="card" id="forecasts">
+        <div class="cardhead"><h2>When today's fields get crowded</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
+      <div class="info" hidden><p><b>How to read it:</b> Each row is a career field: roughly when it gets crowded, the likely range, and about how many years are left. "May be crowding now" means the range has already started.</p><p><b>What it's for:</b> Helps decide which skills are worth building now.</p><p><b>Watch for:</b> More years left plus a high barrier to entry is the safest bet.</p></div>
+        <p class="note">When each field is likely to get crowded, meaning more people chasing it than there are good jobs. Hard to enter: 1 means anyone with a laptop can get in within weeks, 5 means hands-on skill, credentials and years. Years are rounded, and the range is the honest error from past trends.</p>
+        <div class="tablebox">
+          <table data-source="forecasts" data-row-key="field">
+            <thead><tr><th data-field="field">Field</th><th class="r" data-field="barrier">Hard to enter</th><th class="r" data-field="flood_year">Crowded around</th><th class="r" data-field="low">Likely range</th><th class="r" data-field="years_left">Years left</th></tr></thead>
+            <tbody data-draw="ftable"></tbody>
+          </table>
+        </div>
+      </section>
+    <button class="curiousbtn" type="button" aria-expanded="false" aria-controls="curious"><span class="c-show">For the curious: timelines, backtest, influence network and method ▾</span><span class="c-hide">Hide the details ▴</span></button>
+    <div class="curious" id="curious" hidden>
     <section class="card" id="timeline">
       <div class="cardhead"><h2>Trend timelines and forecasts</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
       <div class="info" hidden><p><b>How to read it:</b> Each row is a trend's lifecycle. Filled dots happened; hollow dots are forecasts with a range bar.</p><p><b>What it's for:</b> Shows how past trends played out, so you can judge the forecasts for today's fields.</p><p><b>Watch for:</b> How long past trends took from job spike to flooded. Newer trends move faster.</p></div>
@@ -305,17 +321,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     </section>
 
     <div class="grid">
-      <section class="card" id="forecasts">
-        <div class="cardhead"><h2>Forecasts for today's fields</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
-      <div class="info" hidden><p><b>How to read it:</b> Each row is a career field with its forecast flood year, the range, and years left before it gets crowded.</p><p><b>What it's for:</b> Helps decide which skills are worth building now.</p><p><b>Watch for:</b> More years left plus a high barrier to entry is the safest bet.</p></div>
-        <p class="note">Barrier: 1 means anyone with a laptop can enter in weeks, 5 means physical skill, credentials and years.</p>
-        <div class="tablebox">
-          <table data-source="forecasts" data-row-key="field">
-            <thead><tr><th data-field="field">Field</th><th class="r" data-field="barrier">Barrier</th><th class="r" data-field="flood_year">Floods</th><th class="r" data-field="low">Earliest</th><th class="r" data-field="high">Latest</th><th class="r" data-field="years_left">Years left</th></tr></thead>
-            <tbody data-draw="ftable"></tbody>
-          </table>
-        </div>
-      </section>
+      
 
       <section class="card" id="backtest">
         <div class="cardhead"><h2>Backtest: would it have called the past?</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
@@ -328,7 +334,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
     <section class="card" id="network">
       <div class="cardhead"><h2>Influence network</h2><button class="infobtn" type="button" aria-expanded="false" aria-label="How to read this">i</button></div>
       <div class="info" hidden><p><b>How to read it:</b> Arrows show which signal types push others. Thicker means stronger; tap an arrow for its lead time.</p><p><b>What it's for:</b> Explains why a spike in one place predicts movement somewhere else later.</p><p><b>Watch for:</b> Strengths change as the model relearns daily. Arrows getting thicker are patterns it's confirming.</p></div>
-      <p class="note">How each kind of signal pushes the others, including what key people say and do. Thicker arrows push harder. Tap an arrow for its lead time. Strengths start as estimates and get relearned as the hourly collector logs signals.</p>
+      <p class="note">How each kind of signal pushes the others, including what key people say and do. Thicker arrows push harder. Tap an arrow for its lead time. Strengths start as estimates and get relearned once a day from the signals the collector logs every 6 hours. It shows what tends to come first, not proof that one causes the other.</p>
       <div class="chart net" data-draw="network" data-source="edges"></div>
     </section>
 
@@ -343,7 +349,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       <h2>How the algorithm works</h2>
       <p class="method-lede">Any trend, in tech, money, culture, health or anything else, moves through the same six stages: it emerges, money floods in, it goes mainstream, how-tos and copycats boom, content floods social media, then it is crowded. A collector runs every 6 hours, watching key people in world power, money, AI and industry, plus stocks, politics, world events, news and social buzz, across sectors from AI and jobs to farms, oil, electricity, water and infrastructure. The model learns how long each stage lasts and forecasts what is next. Hands-on fields buy about <b data-draw="barrier" data-source="model" data-field="per_barrier_point">—</b> extra years per barrier point, and every year later a trend starts shortens its runway by <b data-draw="speed" data-source="model" data-field="per_year_later">—</b> years.</p>
       <ol>
-        <li>Heat score: every signal counts 1 point if it's hot, 0.5 if it's building and −0.5 if it shows crowding, and fades by half every 90 days. Points are turned into a 0 to 100 score where 100 is the hottest trend right now, so every chart reads on the same scale. A score of 50 means half as hot as the leader.</li>
+        <li>Heat score: every signal counts 1 point if it's hot, 0.5 if it's building and −0.5 if it shows crowding, and fades by half every 90 days. Points are turned into a fixed 0 to 100 score (20 warming, 40 hot, 60 very hot, 80 red-hot) that means the same every day and can't go past 100. A score of 50 means half as hot as the leader.</li>
         <li>Each trend gets a year for every stage it has reached.</li>
         <li>The model learns the runway (years from job spike to flooded) from two things: when the trend started, and how hard the field is to enter.</li>
         <li>Fields that still are not crowded, like wind turbine and EV techs, count as "at least this long", so hands-on work isn't underestimated.</li>
@@ -351,6 +357,7 @@ html,body{margin:0;background:var(--color-bg);color:var(--color-fg);font-family:
       </ol>
       <p class="label">Stage years for past trends are estimates from well-documented history, not measured job-posting series. Treat forecasts as ranges, not dates. Surprises like a new law, a crash or a breakthrough can break any model.</p>
     </section>
+    </div>
   </section>
 </div>
 </div>

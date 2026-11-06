@@ -41,9 +41,10 @@ def main():
     for field, sig in by.items():
         sig.sort(key=lambda s: s["date"], reverse=True)
         rows.append((field, heat_at(sig, ref) - heat_at(sig, then), heat_at(sig, ref), sig[0]))
-    # Same 0 to 100 score as the site: 100 is the hottest trend right now.
-    k = 100 / max(0.01, max(r[2] for r in rows))
-    rows = [(f, d * k, h * k, s) for f, d, h, s in rows]
+    # Same fixed 0 to 100 heat score as the site (can't go above 100).
+    import math
+    score = lambda p: 100 * (1 - math.exp(-p / 8)) if p >= 0 else -100 * (1 - math.exp(p / 8))
+    rows = [(f, score(h) - score(h - d), score(h), s) for f, d, h, s in rows]
     hot = [r for r in sorted(rows, key=lambda r: -r[1]) if r[1] > 0 and r[2] > 0][:3]
     cool = sorted(rows, key=lambda r: r[1])[:1]
     whispers = sorted((s for s in radar if s["signal"].lower().startswith("early whisper")), key=lambda s: s["date"], reverse=True)

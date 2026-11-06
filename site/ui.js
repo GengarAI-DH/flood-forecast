@@ -86,3 +86,10 @@ document.querySelectorAll('.ff .lensbtn').forEach((b) => b.addEventListener('cli
   document.querySelectorAll('.ff .lensbtn').forEach((x) => x.setAttribute('aria-pressed', String(!on)));
   if (!on) { const g = document.getElementById('glance'); if (g) g.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
 }));
+
+document.querySelectorAll('.ff .curiousbtn').forEach((b) => b.addEventListener('click', () => {
+  const box = document.getElementById(b.getAttribute('aria-controls')); if (!box) return;
+  const open = box.hidden;
+  box.hidden = !open;
+  b.setAttribute('aria-expanded', String(open));
+}));

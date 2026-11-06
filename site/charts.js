@@ -14,8 +14,52 @@
   dash.draw('t_mae', (el) => { const m = one('model'); setText(el, m ? '±' + fmtY(m.mae_years) : '—'); });
   dash.draw('t_cases', (el) => { const m = one('model'); setText(el, m ? String(m.past_cases) : '—'); });
   const byField = (f) => rows('forecasts').find((r) => r.field === f);
-  dash.draw('t_robot', (el) => { const r = byField('Robotics technician'); setText(el, r ? fmtY(r.flood_year) : '—'); });
-  dash.draw('t_agent', (el) => { const r = byField('Agentic AI engineer'); setText(el, r ? fmtY(r.flood_year) : '—'); });
+  const yr = (v) => d3.format('.0f')(v);
+  const tileYear = (el, r) => {
+    el.replaceChildren();
+    if (!r) { el.textContent = '—'; return; }
+    el.append(yr(r.flood_year));
+    const sub = document.createElement('span'); sub.className = 'tsub';
+    sub.textContent = r.low <= new Date().getUTCFullYear() + 0.5 ? `likely ${yr(r.low)} to ${yr(r.high)}, so it may be crowding already` : `likely ${yr(r.low)} to ${yr(r.high)}`;
+    el.appendChild(sub);
+  };
+  dash.draw('t_robot', (el) => tileYear(el, byField('Robotics technician')));
+  dash.draw('t_agent', (el) => tileYear(el, byField('Agentic AI engineer')));
+
+  // How much to trust each part, rated from the live numbers.
+  dash.draw('trustbox', (ul) => {
+    ul.replaceChildren();
+    const radar = rows('radar'), m = one('model') || {}, edges = rows('edges'), acc = rows('accuracy'), proj = rows('projection');
+    const fields = new Set(radar.map((r) => r.field)).size;
+    const relearned = edges.filter((e) => e.basis && !/starting/i.test(e.basis)).length;
+    const live = acc.filter((a) => !/backtest/i.test(a.method || ''));
+    const p0 = proj[0] || {};
+    const lvl = (n) => (n >= 3 ? ['Solid', 'var(--color-ok)'] : n === 2 ? ['Fair', 'var(--color-warn)'] : ['Low for now', 'var(--color-bad)']);
+    const items = [
+      ['Trend heat and rankings', radar.length >= 1000 ? 3 : radar.length >= 250 ? 2 : 1,
+        `${radar.length} sourced signals across ${fields} trends so far, and every one links to where it came from. With this few, one new signal can move a trend about 10 points. It firms up as the collector adds more every 6 hours.`],
+      ['Heat forecasts', (p0.history_weeks || 0) >= 104 ? 3 : (p0.history_weeks || 0) >= 52 ? 2 : 1,
+        `Built from how fast signals have been arriving (${p0.history_weeks || 0} weeks of history, so it looks ${p0.horizon_weeks || 0} weeks ahead). Read the range, not the single number.`],
+      ['Career crowding years', (m.past_cases || 0) >= 15 && (m.mae_years || 9) <= 2 ? 3 : (m.past_cases || 0) >= 10 ? 2 : 1,
+        `Learned from only ${m.past_cases || 0} past trends, and it misses by about ${d3.format('.1f')(m.mae_years || 0)} years on average. Good for "sooner or later", not for an exact year.`],
+      ['World risk odds', 2,
+        'Published estimates from tested forecasters and expert surveys, each linked to its source. Experts disagree widely, and nobody can check these until it\'s too late.'],
+      ['Influence arrows', relearned >= Math.max(1, edges.length * 0.75) ? 2 : 1,
+        `${relearned} of ${edges.length} arrows have been relearned from our own data so far. They show what tends to happen first, not proof that one thing causes another.`],
+      ['Live track record', live.length >= 8 ? 3 : live.length >= 2 ? 2 : 1,
+        live.length ? `${live.length} weekly checks so far, latest hit rate ${d3.format('.0%')(live[live.length - 1].hit_rate)}.` : 'No live calls checked yet. The first weekly check comes once calls are 30 days old. Until then the only test is the backtest on past trends.'],
+    ];
+    items.forEach(([name, n, why]) => {
+      const [word, c] = lvl(n);
+      const li = document.createElement('li');
+      const top = document.createElement('div'); top.className = 'trow';
+      const nm = document.createElement('span'); nm.className = 'tname'; nm.textContent = name;
+      const pill = document.createElement('span'); pill.className = 'pill'; pill.style.color = c; pill.textContent = word;
+      top.append(nm, pill); li.appendChild(top);
+      const p = document.createElement('p'); p.className = 'twhy'; p.textContent = why; li.appendChild(p);
+      ul.appendChild(li);
+    });
+  });
 
   dash.draw('ftable', (tb) => {
     const data = rows('forecasts').slice().sort((a, b) => b.flood_year - a.flood_year);
@@ -23,9 +67,10 @@
     data.forEach((r) => {
       const tr = document.createElement('tr');
       tr.dataset.key = r.field;
-      [[r.field, ''], [String(r.barrier), 'r'], [fmtY(r.flood_year), 'r'], [fmtY(r.low), 'r'], [fmtY(r.high), 'r'], [fmtY(r.years_left), 'r']].forEach(([v, c], i) => {
+      const left = r.years_left < 1 ? 'May be crowding now' : `About ${d3.format('.0f')(r.years_left)}`;
+      [[r.field, ''], [`${r.barrier}/5`, 'r'], [yr(r.flood_year), 'r'], [`${yr(r.low)}–${yr(r.high)}`, 'r nowrap'], [left, 'r']].forEach(([v, c], i) => {
         const td = document.createElement('td'); td.textContent = v; if (c) td.className = c;
-        if (i === 5) td.classList.add(r.years_left >= 4 ? 'hot' : r.years_left >= 1 ? 'warm' : 'cold');
+        if (i === 4) td.classList.add(r.years_left >= 4 ? 'hot' : r.years_left >= 1 ? 'warm' : 'cold');
         tr.appendChild(td);
       });
       tb.appendChild(tr);
@@ -177,6 +222,9 @@
     .call((s) => s.selectAll('line').attr('stroke', 'var(--cds-chart-grid)'))
     .call((s) => s.selectAll('text').attr('fill', 'var(--color-fg-muted)').style('font-size', 'var(--cds-font-size-caption)'));
 
+  // Heat is a fixed 0 to 100 scale. It can't go above 100, and the bands mean the same every day.
+  const heatWord = (v) => (v < 0 ? 'crowding' : v < 20 ? 'quiet' : v < 40 ? 'warming' : v < 60 ? 'hot' : v < 80 ? 'very hot' : 'red-hot');
+  const heatTxt = (v) => `${d3.format('.0f')(v)} (${heatWord(v)})`;
   const ZONE = { 'Get in early': 'var(--color-ok)', 'Hot now': 'var(--color-warn)', 'Crowded': 'var(--color-bad)', 'Fading': 'var(--cds-chart-muted)' };
   document.querySelectorAll('.sw.zone').forEach((s) => { s.style.background = ZONE[s.dataset.z]; });
 
@@ -239,7 +287,7 @@
     sats.append('circle').attr('r', (s) => 3.5 + Math.sqrt(s.n) * 1.8).style('fill', (s) => catColor(s.cat)).attr('stroke', 'var(--color-panel)').attr('stroke-width', 1.5);
     const satLbl = sats.append('text').attr('dy', '0.35em').attr('fill', 'var(--color-fg-muted)').style('font-size', '10px').text((s) => s.cat);
     const bubs = bubG.selectAll('g').data(pts).join('g').attr('data-trend', (d) => d.field)
-      .on('pointerenter pointermove', (ev, d) => showTip(ev, [d.field, `${d.zone} · heat ${d3.format('.0f')(d.heat)} of 100`, `${d.signals} signal${d.signals === 1 ? '' : 's'} · tap for why`]))
+      .on('pointerenter pointermove', (ev, d) => showTip(ev, [d.field, `${d.zone} · heat ${heatTxt(d.heat)}`, `${d.signals} signal${d.signals === 1 ? '' : 's'} · tap for why`]))
       .on('pointerleave', hideTip);
     const lensOn = dash.params().lens === 'me';
     const fitOf = (f) => (rows('fit').find((r) => r.field === f) || {}).fit;
@@ -568,7 +616,7 @@
   dash.draw('tdname', (el) => setText(el, picked() || '—'));
   dash.draw('tdstats', (el) => {
     const m = rows('map').find((r) => r.field === picked());
-    setText(el, m ? `${m.zone} · stage ${m.stage} of 6 · heat ${d3.format('.0f')(m.heat)} of 100 · ${m.signals} signal${m.signals === 1 ? '' : 's'}` : (picked() ? 'No live signals for this one yet.' : '—'));
+    setText(el, m ? `${m.zone} · stage ${m.stage} of 6 · heat ${heatTxt(m.heat)} · ${m.signals} signal${m.signals === 1 ? '' : 's'}` : (picked() ? 'No live signals for this one yet.' : '—'));
   });
   dash.draw('tdwhy', (el) => {
     const f = picked(); if (!f) { setText(el, '—'); return; }
@@ -590,7 +638,7 @@
     const now = act[act.length - 1].heat, end = fc[fc.length - 1];
     const dir = end.heat > now + 2 ? 'keep heating up' : end.heat < now - 2 ? 'cool off a little' : 'hold about steady';
     const f0 = d3.format('.0f');
-    setText(el, `Heat ${f0(now)} of 100 now. If new signals keep arriving at their usual pace, it should ${dir} over the next ${end.horizon_weeks} weeks, to about ${f0(end.heat)} (likely ${f0(Math.max(end.lo, Math.min(0, end.fade)))} to ${f0(end.hi)}). If nothing new happens, today's signals fade to about ${f0(end.fade)}. How far ahead it can see grows as more history comes in.`);
+    setText(el, `Heat ${f0(now)} (${heatWord(now)}) now. If new signals keep arriving at their usual pace, it should ${dir} over the next ${end.horizon_weeks} weeks, to about ${f0(end.heat)} (likely ${f0(Math.max(end.lo, Math.min(0, end.fade)))} to ${f0(end.hi)}). If nothing new happens, today's signals fade to about ${f0(end.fade)}. How far ahead it can see grows as more history comes in.`);
   });
   dash.draw('tddrivers', (el) => {
     el.replaceChildren();
@@ -881,7 +929,7 @@
         const [px, py] = d3.pointer(ev, el);
         tip.style('display', null).selectAll('*').remove();
         tip.append('div').attr('class', 't').text(`${d.field} · ${d.category}`);
-        tip.append('div').text(`Heat ${d3.format('.0f')(d.heat)} of 100`);
+        tip.append('div').text(`Heat ${heatTxt(d.heat)}`);
         const tw = tip.node().offsetWidth;
         tip.style('left', Math.min(Math.max(0, px + 12), el.clientWidth - tw) + 'px').style('top', (py + 12) + 'px');
       })
@@ -918,7 +966,7 @@
     svg.append('g').selectAll('text.v').data(data).join('text').attr('class', 'v')
       .attr('x', (d) => x(Math.max(0, d.heat)) + 4).attr('y', (d) => y(d.category) + y.bandwidth() / 2).attr('dy', '0.35em')
       .attr('fill', 'var(--color-fg)').style('font-size', 'var(--cds-font-size-caption)')
-      .text((d) => (d.signals ? d3.format('.0f')(d.heat) : 'no data yet'));
+      .text((d) => (d.signals ? `${d3.format('.0f')(d.heat)}%` : 'no data yet'));
     el.style.minHeight = H + 'px';
   });
 
